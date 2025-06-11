@@ -6,6 +6,7 @@
 import sys
 import os
 import traceback
+import logging
 
 # --- INICIO DE MODIFICACIÓN PARA RESOLVER ModuleNotFoundError ---
 current_script_directory = os.path.dirname(os.path.abspath(__file__))
@@ -542,28 +543,54 @@ class ReportApp:
                                  except Exception: df_temp_peek = pd.read_excel(f_path, engine=engine, dtype=str, nrows=20) 
                          elif ext == '.csv': 
                              sep_peek = None; enc_peek = None;
-                             try: 
-                                 with open(f_path,'r',encoding='utf-8-sig', errors='ignore') as f_peek: header_line_peek = f_peek.readline()
-                                 if not header_line_peek: 
-                                      with open(f_path,'r',encoding='latin-1', errors='ignore') as f_peek: header_line_peek = f_peek.readline()
-                                 if header_line_peek: 
-                                     try: dialect = csv.Sniffer().sniff(header_line_peek, delimiters=',;\t|'); sep_peek = dialect.delimiter
-                                     except csv.Error: 
+                             try:
+                                 with open(f_path, 'r', encoding='utf-8-sig', errors='ignore') as f_peek:
+                                     header_line_peek = f_peek.readline()
+                                 if not header_line_peek:
+                                     with open(f_path, 'r', encoding='latin-1', errors='ignore') as f_peek:
+                                         header_line_peek = f_peek.readline()
+                                 if header_line_peek:
+                                     try:
+                                         dialect = csv.Sniffer().sniff(header_line_peek, delimiters=',;\t|')
+                                         sep_peek = dialect.delimiter
+                                     except csv.Error:
                                          common = [',', ';', '\t', '|']
                                          counts = {s: header_line_peek.count(s) for s in common}
                                          sep_peek = max(counts, key=counts.get) if any(counts.values()) else ','
-                             except Exception: pass 
+                             except Exception as e_peek_open:
+                                 logging.exception("Error reading peek header", exc_info=e_peek_open)
                              for enc_try in ['utf-8-sig', 'latin-1', 'cp1252']:
                                 try:
                                     with open(f_path, 'r', encoding=enc_try, errors='ignore') as f_peek_enc: f_peek_enc.read(100) 
                                     enc_peek = enc_try; break
-                                except: pass
+                                except Exception as e_enc:
+                                    logging.exception("Encoding detection failed", exc_info=e_enc)
                              if enc_peek is None: enc_peek = 'latin-1' 
 
-                             try: 
-                                 try: df_temp_peek = pd.read_csv(f_path, dtype=str, sep=sep_peek, engine='python', encoding=enc_peek, on_bad_lines='skip', nrows=20, skiprows=[1])
-                                 except Exception: df_temp_peek = pd.read_csv(f_path, dtype=str, sep=sep_peek, engine='python', encoding=enc_peek, on_bad_lines='skip', nrows=20)
-                             except Exception: pass 
+                             try:
+                                 try:
+                                     df_temp_peek = pd.read_csv(
+                                         f_path,
+                                         dtype=str,
+                                         sep=sep_peek,
+                                         engine='python',
+                                         encoding=enc_peek,
+                                         on_bad_lines='skip',
+                                         nrows=20,
+                                         skiprows=[1],
+                                     )
+                                 except Exception:
+                                     df_temp_peek = pd.read_csv(
+                                         f_path,
+                                         dtype=str,
+                                         sep=sep_peek,
+                                         engine='python',
+                                         encoding=enc_peek,
+                                         on_bad_lines='skip',
+                                         nrows=20,
+                                     )
+                             except Exception as e_read_csv:
+                                 logging.exception("Peek read_csv failed", exc_info=e_read_csv)
 
                     except Exception as e_peek: 
                          print(f"Adv: Error reading peek data for entities in {os.path.basename(f_path)}: {e_peek}")
@@ -838,7 +865,8 @@ class ReportApp:
                 parsed_entry_date = date_parse(self.bitacora_selected_week_start_date_var.get(), dayfirst=True).date()
                 current_selection_date = parsed_entry_date
                 year_to_show, month_to_show, day_to_show = parsed_entry_date.year, parsed_entry_date.month, parsed_entry_date.day
-            except: pass
+            except Exception as e_date:
+                logging.exception("Error parsing selected date", exc_info=e_date)
         elif self.max_date_detected:
             current_selection_date = self.max_date_detected.date()
             year_to_show, month_to_show, day_to_show = self.max_date_detected.year, self.max_date_detected.month, self.max_date_detected.day
