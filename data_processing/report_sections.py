@@ -497,8 +497,10 @@ def _generar_tabla_embudo_bitacora(df_daily_agg, bitacora_periods_list, log_func
         log_func(f"\nNo hay columnas del embudo disponibles para bitácora.") 
         df_temp_display = pd.DataFrame(columns=["Paso del Embudo"] + [f"Período {i+1}" for i in range(len(bitacora_periods_list))])
         _format_dataframe_to_markdown(df_temp_display,"",log_func,numeric_cols_for_alignment=[])
-        try: locale.setlocale(locale.LC_TIME, original_locale) 
-        except: pass
+        try:
+            locale.setlocale(locale.LC_TIME, original_locale)
+        except locale.Error as loc_err:
+            log_func(f"Adv: error restaurando locale: {loc_err}")
         return
     log_func(f"Columnas embudo disponibles: {[s[0] for s in funnel_steps_config_available]}")
     
@@ -507,8 +509,10 @@ def _generar_tabla_embudo_bitacora(df_daily_agg, bitacora_periods_list, log_func
          log_func("Adv: No se encontraron columnas numéricas para agregar en la bitácora del embudo.");
          df_temp_display = pd.DataFrame(columns=["Paso del Embudo"] + [f"Período {i+1}" for i in range(len(bitacora_periods_list))])
          _format_dataframe_to_markdown(df_temp_display,"",log_func,numeric_cols_for_alignment=[])
-         try: locale.setlocale(locale.LC_TIME, original_locale)
-         except: pass
+         try:
+             locale.setlocale(locale.LC_TIME, original_locale)
+         except locale.Error as loc_err:
+             log_func(f"Adv: error restaurando locale: {loc_err}")
          return
 
     df_daily_total_for_bitacora = df_daily_agg.groupby('date', as_index=False, observed=True)[existing_numeric_cols_in_agg].sum()
@@ -589,8 +593,10 @@ def _generar_tabla_embudo_bitacora(df_daily_agg, bitacora_periods_list, log_func
     log_func(f"  * **Columnas ({'Semana actual, Xª semana anterior' if period_type == 'Weeks' else 'Mes actual, Xº mes anterior'}):** Muestran el valor *Real* acumulado para esa etapa en el período indicado.")
     log_func(f"  * **% Paso ({'Semana/Mes'}):** Es la tasa de conversión de esta etapa con respecto a la etapa *anterior en el embudo* (ej. Clics/Impresiones) DENTRO DEL MISMO PERÍODO. La Flecha (🔺/🔻) indica si este porcentaje de paso es mayor o menor que el 100%. '-' para el primer paso.");
     log_func("  ---")
-    try: locale.setlocale(locale.LC_TIME, original_locale) 
-    except: pass
+    try:
+        locale.setlocale(locale.LC_TIME, original_locale)
+    except locale.Error as loc_err:
+        log_func(f"Adv: error restaurando locale: {loc_err}")
 
 def _generar_analisis_ads(df_combined, df_daily_agg, active_days_total_ad_df, log_func, detected_currency, last_day_status_lookup=None):
     log_func("\n\n============================================================");log_func("===== 5. Análisis Consolidado de ADS =====");log_func("=====     (Filtro: Ads con Gasto > 0, Impresiones > 0 Y Días Activos > 0) =====");log_func("============================================================")
@@ -1066,13 +1072,17 @@ def _generar_tabla_bitacora_entidad(entity_level, entity_name, df_daily_entity,
 
     if df_daily_entity is None or df_daily_entity.empty or 'date' not in df_daily_entity.columns:
         log_func("   No hay datos diarios para generar la tabla de bitácora.")
-        try: locale.setlocale(locale.LC_TIME, original_locale) 
-        except: pass
+        try:
+            locale.setlocale(locale.LC_TIME, original_locale)
+        except locale.Error as loc_err:
+            log_func(f"Adv: error restaurando locale: {loc_err}")
         return
     if not bitacora_periods_list: 
         log_func("   No se proporcionaron períodos para la bitácora.")
-        try: locale.setlocale(locale.LC_TIME, original_locale) 
-        except: pass
+        try:
+            locale.setlocale(locale.LC_TIME, original_locale)
+        except locale.Error as loc_err:
+            log_func(f"Adv: error restaurando locale: {loc_err}")
         return
 
     results_by_period = {} 
@@ -1197,5 +1207,7 @@ def _generar_tabla_bitacora_entidad(entity_level, entity_name, df_daily_entity,
     log_func("  * **% RV X% (Porcentaje de Reproducción de Video):** `(Reproducciones hasta X% / Base de Video) * 100`. La base es `Reproducciones de 3 segundos` si es > 0, sino `Impresiones`.")
     log_func("  * **Estabilidad (%):** Mide la consistencia diaria de la métrica *dentro* del período de la columna. Un % alto indica estabilidad. Se calcula si el período tiene todos sus días con datos y cumple umbrales mínimos. Iconos: ✅ >= 50%, 🏆 >= 70%.")
     log_func("  ---")
-    try: locale.setlocale(locale.LC_TIME, original_locale) 
-    except: pass
+    try:
+        locale.setlocale(locale.LC_TIME, original_locale)
+    except locale.Error as loc_err:
+        log_func(f"Adv: error restaurando locale: {loc_err}")

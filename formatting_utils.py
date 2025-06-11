@@ -2,9 +2,10 @@
 import pandas as pd
 import numpy as np
 import re
-import locale 
+import locale
 from datetime import datetime, date, timedelta
-from utils import robust_numeric_conversion # De utils.py local
+from utils import robust_numeric_conversion  # De utils.py local
+import logging
 
 
 # ============================================================
@@ -13,15 +14,21 @@ from utils import robust_numeric_conversion # De utils.py local
 fmt_int = lambda x: f"{int(round(x)):,}".replace(',', '.') if pd.notna(x) and np.isfinite(x) and pd.api.types.is_number(x) else '-'
 
 def fmt_float(x, d=2):
-    try: val = float(x)
-    except: return '-'
+    try:
+        val = float(x)
+    except (TypeError, ValueError) as e:
+        logging.exception("fmt_float conversion error", exc_info=e)
+        return '-'
     if pd.isna(val) or not np.isfinite(val): return '-'
     if abs(val) < 1e-9: return f"0,{ '0' * d }"
     s = f"{val:,.{d}f}"; return s.replace(',', 'X').replace('.', ',').replace('X', '.')
 
 def fmt_pct(x, d=2):
-    try: val = float(x)
-    except: return '-'
+    try:
+        val = float(x)
+    except (TypeError, ValueError) as e:
+        logging.exception("fmt_pct conversion error", exc_info=e)
+        return '-'
     if pd.isna(val) or not np.isfinite(val): return '-'
     if abs(val) < 1e-9 : return f"0,{ '0' * d }%"
     s_num = f"{abs(val):,.{d}f}"; s_fmt = s_num.replace(',', 'X').replace('.', ',').replace('X', '.')

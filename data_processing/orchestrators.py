@@ -193,8 +193,10 @@ def procesar_reporte_rendimiento(input_files, output_dir, output_filename, statu
         status_queue.put("---ERROR---")
     finally:
         if log_file_handler and not log_file_handler.closed:
-            try: log_file_handler.close()
-            except: pass
+            try:
+                log_file_handler.close()
+            except Exception as e_close:
+                log(f"Adv: error al cerrar log: {e_close}")
 
 
 def procesar_reporte_bitacora(input_files, output_dir, output_filename, status_queue, 
@@ -489,7 +491,11 @@ def procesar_reporte_bitacora(input_files, output_dir, output_filename, status_q
         status_queue.put("---ERROR---")
     finally:
         if log_file_handler and not log_file_handler.closed:
-            try: log_file_handler.close()
-            except: pass
-        try: locale.setlocale(locale.LC_TIME, original_locale_setting)
-        except: pass
+            try:
+                log_file_handler.close()
+            except Exception as e_close:
+                log(f"Adv: error al cerrar log: {e_close}")
+        try:
+            locale.setlocale(locale.LC_TIME, original_locale_setting)
+        except locale.Error as loc_err:
+            log(f"Adv: error restaurando locale: {loc_err}")
