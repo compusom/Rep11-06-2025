@@ -37,7 +37,7 @@ Developers are encouraged to follow standard Python packaging conventions when a
    python -m venv .venv
    source .venv/bin/activate
    ```
-3. Install any required dependencies once they are specified:
+3. Install the required dependencies from the provided `requirements.txt` file:
    ```bash
    pip install -r requirements.txt
    ```
