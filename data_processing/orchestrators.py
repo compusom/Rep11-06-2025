@@ -264,8 +264,9 @@ def procesar_reporte_bitacora(input_files, output_dir, output_filename, status_q
 
             log("--- Calculando Días Activos Totales (Bitácora) ---", importante=True)
             active_days_results = _calcular_dias_activos_totales(df_combined)
-            active_days_ad = active_days_results.get('Anuncio', pd.DataFrame())
+            active_days_campaign = active_days_results.get('Campaign', pd.DataFrame())
             active_days_adset = active_days_results.get('AdSet', pd.DataFrame())
+            active_days_ad = active_days_results.get('Anuncio', pd.DataFrame())
 
             min_date_overall = df_daily_agg_full['date'].min().date()
             max_date_overall = df_daily_agg_full['date'].max().date()
