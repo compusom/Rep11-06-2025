@@ -4,3 +4,4 @@ python-dateutil
 openpyxl
 tkcalendar
 sv-ttk
+pytest

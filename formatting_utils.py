@@ -14,6 +14,7 @@ import logging
 fmt_int = lambda x: f"{int(round(x)):,}".replace(',', '.') if pd.notna(x) and np.isfinite(x) and pd.api.types.is_number(x) else '-'
 
 def fmt_float(x, d=2):
+    """Format a number with decimal comma and dot thousands."""
     try:
         val = float(x)
     except (TypeError, ValueError) as e:
@@ -24,6 +25,7 @@ def fmt_float(x, d=2):
     s = f"{val:,.{d}f}"; return s.replace(',', 'X').replace('.', ',').replace('X', '.')
 
 def fmt_pct(x, d=2):
+    """Format a percentage with optional precision."""
     try:
         val = float(x)
     except (TypeError, ValueError) as e:
@@ -35,6 +37,7 @@ def fmt_pct(x, d=2):
     return f"-{s_fmt}%" if val < 0 else f"{s_fmt}%"
 
 def fmt_stability(x):
+    """Format stability metric with icons based on thresholds."""
     if pd.isna(x) or not np.isfinite(x): return '-'
     val = float(x); pct_fmt = fmt_pct(val, 0)
     if val >= 70: return f"{pct_fmt} 🏆"
@@ -42,6 +45,7 @@ def fmt_stability(x):
     else: return pct_fmt
 
 def variation(current, previous):
+    """Return formatted percentage change between two values."""
     c = pd.to_numeric(current, errors='coerce'); p = pd.to_numeric(previous, errors='coerce')
     if pd.isna(c) or pd.isna(p) or not np.isfinite(c) or not np.isfinite(p): return '-'
     if abs(p) < 1e-9:
@@ -52,6 +56,7 @@ def variation(current, previous):
     return fmt_pct(var_pct, 1) + arrow
 
 def format_step_pct(value):
+    """Format funnel step percentage adding arrows above or below 100%."""
     if pd.isna(value) or not np.isfinite(value): return '-'
     pct_val = float(value); arrow = '🔺' if pct_val > 100.01 else ('🔻' if pct_val < 99.99 else '')
     if abs(pct_val) < 0.01 or abs(pct_val - 100) < 0.01 : arrow = ''
@@ -59,6 +64,7 @@ def format_step_pct(value):
 
 # --- ESTAS SON LAS FUNCIONES IMPORTANTES QUE FALTAN O TIENEN ERROR DE NOMBRE ---
 def safe_division(n_input, d_input):
+    """Safely divide two numeric inputs, returning NaN on invalid data."""
     n = pd.to_numeric(n_input, errors='coerce')
     d = pd.to_numeric(d_input, errors='coerce')
     return_scalar = not isinstance(n_input, (pd.Series, np.ndarray)) and \
@@ -77,6 +83,7 @@ def safe_division(n_input, d_input):
         return pd.Series(result_values.flatten(), index=index, name=name)
 
 def safe_division_pct(n_input, d_input):
+    """Safely divide and multiply result by 100 to express a percentage."""
     n = pd.to_numeric(n_input, errors='coerce')
     d = pd.to_numeric(d_input, errors='coerce')
     return_scalar = not isinstance(n_input, (pd.Series, np.ndarray)) and \
@@ -96,6 +103,7 @@ def safe_division_pct(n_input, d_input):
 # --- FIN DE FUNCIONES IMPORTANTES ---
 
 def _format_dataframe_to_markdown(df, title, log_func, float_cols_fmt={}, int_cols=[], pct_cols_fmt={}, currency_cols={}, stability_cols=[], default_prec=2, max_col_width=None, numeric_cols_for_alignment=[]):
+    """Format a DataFrame applying numeric formatting and return markdown."""
     if df is None or df.empty: log_func(f"\n** {title} **"); log_func("   No hay datos disponibles."); return
     log_func(f"\n** {title} **"); df_formatted=df.copy();
 
