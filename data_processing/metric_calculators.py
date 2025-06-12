@@ -8,9 +8,8 @@ from formatting_utils import safe_division, safe_division_pct # De formatting_ut
 # CÁLCULO DE MÉTRICAS ESPECÍFICAS Y ESTABILIDAD
 # ============================================================
 def _calcular_dias_activos_totales(df_combined):
+    """Return number of active days per campaign, ad set and ad."""
     results={'Campaign':pd.DataFrame(columns=['Campaign','Días_Activo_Total']),'AdSet':pd.DataFrame(columns=['Campaign','AdSet','Días_Activo_Total']),'Anuncio':pd.DataFrame(columns=['Campaign','AdSet','Anuncio','Días_Activo_Total'])}
-    # ... (copiar el cuerpo completo de la función _calcular_dias_activos_totales aquí)
-    # [PEGAR AQUÍ EL CÓDIGO COMPLETO DE LA FUNCIÓN _calcular_dias_activos_totales DESDE EL SCRIPT ORIGINAL]
     if df_combined is None or df_combined.empty: print("Adv: DF vacío (días activos)."); return results
     if 'Entrega' not in df_combined.columns: print("Adv: Col 'Entrega' no encontrada (días activos)."); return results
     active_df=df_combined[df_combined['Entrega'].eq('Activo')].copy()
@@ -37,9 +36,8 @@ def _calcular_dias_activos_totales(df_combined):
     return results
 
 def _calculate_stability_pct(series):
+    """Calculate coefficient-of-variation based stability percent for a series."""
     series_num=pd.to_numeric(series,errors='coerce').dropna(); series_num=series_num[np.isfinite(series_num)]
-    # ... (copiar el cuerpo completo de la función _calculate_stability_pct aquí)
-    # [PEGAR AQUÍ EL CÓDIGO COMPLETO DE LA FUNCIÓN _calculate_stability_pct DESDE EL SCRIPT ORIGINAL]
     if len(series_num)<2: return 100.0 if len(series_num)==1 else np.nan
     mean_val=series_num.mean(); std_val=series_num.std()
     if pd.isna(mean_val) or pd.isna(std_val): return np.nan
@@ -48,9 +46,8 @@ def _calculate_stability_pct(series):
     else: cv=abs(std_val/(mean_val+eps)); raw=(1-cv)*100; stab=max(0,min(100,raw)); return stab
 
 def _calcular_metricas_agregadas_y_estabilidad(df_period, period_identifier, log_func):
+    """Aggregate metrics for a period and compute stability indicators."""
     results={'is_complete':False};keys=['Alcance','Impresiones','Frecuencia','Inversion','CPM','Compras','Clics','Visitas','CPA','CTR','Ventas_Totales','ROAS','Ticket_Promedio','Tiempo_Promedio','LVP_Rate_%','Conv_Rate_%','RV25_%','RV75_%','RV100_%','ROAS_Stability_%','CPA_Stability_%','CPM_Stability_%','CTR_Stability_%','IMPR_Stability_%','CTR_DIV_FREQ_RATIO_Stability_%','Clics Salientes','CTR Saliente']
-    # ... (copiar el cuerpo completo de la función _calcular_metricas_agregadas_y_estabilidad aquí)
-    # [PEGAR AQUÍ EL CÓDIGO COMPLETO DE LA FUNCIÓN _calcular_metricas_agregadas_y_estabilidad DESDE EL SCRIPT ORIGINAL]
     for k in keys: results[k]=np.nan
     if df_period is None or df_period.empty or 'date' not in df_period.columns or df_period['date'].dropna().empty:
         results['date_range'] = 'Datos insuficientes'
