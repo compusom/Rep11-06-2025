@@ -67,7 +67,7 @@ numeric_internal_cols = [
     'visits',
     'attention', 'interest', 'deseo', # Nuevas de embudo
     'addcart', 'checkout', 'purchases', 
-    'value', 'value_avg', 'roas', 'cpa',
+    'value', 'value_avg', 'roas', 'cpa', 'ncpa', 'aov', 'cvr',
     'rv3', 'rv25', 'rv75', 'rv100', 'rtime' # Video
 ]
 
