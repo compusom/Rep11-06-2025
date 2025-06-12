@@ -56,6 +56,10 @@ how many complete months to compare (between 2 and the number of detected
 months). Use the spinbox in the Bitácora configuration section to select the
 desired number of months.
 
+The weekly and historical Top Ads tables rank ads by ROAS and impressions and
+now display the top 20 results including aggregated audiences used and
+excluded for each ad.
+
 ## Report Format
 
 Generated reports are plain text files where tables use a semicolon (`;`) as the delimiter for each cell. This ensures data can be imported directly into spreadsheet tools. See `docs/report_format.md` for details.
