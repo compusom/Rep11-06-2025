@@ -280,8 +280,23 @@ class ReportApp:
 
 
         self.bitacora_monthly_options_frame = ttk.Frame(self.bitacora_options_container)
-        self.lbl_bitacora_monthly_info_detail = ttk.Label(self.bitacora_monthly_options_frame, text="Compara los 2 últimos meses calendario completos con datos.", wraplength=500)
+        self.bitacora_months_to_compare_var = tk.IntVar(value=2)
+        self.lbl_bitacora_monthly_info_detail = ttk.Label(
+            self.bitacora_monthly_options_frame,
+            text="Compara los últimos meses calendario completos disponibles.",
+            wraplength=500,
+        )
         self.lbl_bitacora_monthly_info_detail.pack(side=tk.LEFT, padx=5)
+        ttk.Label(self.bitacora_monthly_options_frame, text="Meses a comparar:").pack(side=tk.LEFT, padx=(10,5))
+        self.spin_months_to_compare = ttk.Spinbox(
+            self.bitacora_monthly_options_frame,
+            from_=2,
+            to=12,
+            width=5,
+            textvariable=self.bitacora_months_to_compare_var,
+            wrap=True,
+        )
+        self.spin_months_to_compare.pack(side=tk.LEFT, padx=5)
 
         output_frame_outer = ttk.LabelFrame(main_frame, text="4. Configuración de Salida", padding=(10, 5)); output_frame_outer.grid(row=4, column=0, columnspan=3, sticky="ew", padx=10, pady=10); output_frame_outer.columnconfigure(1, weight=1)
         ttk.Label(output_frame_outer, text="Directorio:").grid(row=0, column=0, sticky="w", padx=(0,5), pady=3)
@@ -389,11 +404,21 @@ class ReportApp:
                     self.lbl_monthly_info.config(text="(Solo ~1 mes con datos)")
                 else:
                     self.lbl_monthly_info.config(text="(No hay suficientes datos para meses)")
+                try:
+                    self.spin_months_to_compare.config(to=max(2, num_full_months))
+                    if self.bitacora_months_to_compare_var.get() > num_full_months:
+                        self.bitacora_months_to_compare_var.set(max(2, num_full_months))
+                except Exception:
+                    pass
             except Exception as e_month_count:
                 print(f"Error contando meses para GUI: {e_month_count}")
                 self.lbl_monthly_info.config(text="(No se pudo determinar el número de meses)")
         else:
              self.lbl_monthly_info.config(text="")
+             try:
+                 self.spin_months_to_compare.config(to=12)
+             except Exception:
+                 pass
 
     def _set_widget_state_recursive(self, parent, state):
         try:
@@ -807,11 +832,12 @@ class ReportApp:
                     else:
                          self._update_status("Bitácora Semanal: No se especificó semana válida. Se usará detección automática en backend.")
                 
-                target_func=procesar_reporte_bitacora_func; 
-                args_tuple=(self.input_files.copy(), out_dir, out_file, self.status_queue, 
-                            camp_proc, adsets_proc_list, 
-                            selected_week_start_str, selected_week_end_str, 
-                            bitacora_comp_type)
+                months_to_compare = self.bitacora_months_to_compare_var.get() if bitacora_comp_type == "Monthly" else 2
+                target_func=procesar_reporte_bitacora_func;
+                args_tuple=(self.input_files.copy(), out_dir, out_file, self.status_queue,
+                            camp_proc, adsets_proc_list,
+                            selected_week_start_str, selected_week_end_str,
+                            bitacora_comp_type, months_to_compare)
 
             elif rep_type=="Rendimiento":
                 target_func=procesar_reporte_rendimiento_func; 
@@ -826,7 +852,9 @@ class ReportApp:
         except tk.TclError: pass
         self._update_status(f"🚀 Iniciando Reporte {rep_type} | Campaña: {camp_log} | AdSet(s): {adset_log}...");
         if rep_type == "Bitácora":
-            self._update_status(f"   Tipo de comparación de Bitácora: {self.bitacora_comparison_type.get()}");
+            self._update_status(f"   Tipo de comparación de Bitácora: {self.bitacora_comparison_type.get()}")
+            if self.bitacora_comparison_type.get() == "Monthly":
+                self._update_status(f"   Meses a comparar: {self.bitacora_months_to_compare_var.get()}")
 
         self._update_status(f"   Salida: {os.path.join(out_dir,out_file)}"); self._update_status("   Por favor, espera...")
         self.processing_thread=threading.Thread(target=target_func,args=args_tuple,daemon=True); self.processing_thread.start()

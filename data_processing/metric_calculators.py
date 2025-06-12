@@ -20,6 +20,9 @@ def _calcular_dias_activos_totales(df_combined):
 
     active_df = df_combined.copy()
 
+    if 'Entrega' not in active_df.columns and 'entrega' in active_df.columns:
+        active_df['Entrega'] = active_df['entrega']
+
     if 'Entrega' in active_df.columns:
         active_df = active_df[active_df['Entrega'].eq('Activo')]
 

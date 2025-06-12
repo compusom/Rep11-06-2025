@@ -883,7 +883,7 @@ def _generar_analisis_ads(df_combined, df_daily_agg, active_days_total_ad_df, lo
     log_func("\n--- Fin Análisis Consolidado de Ads ---")
 
 
-def _generar_tabla_top_ads_historico(df_daily_agg, active_days_total_ad_df, log_func, detected_currency, top_n=10):
+def _generar_tabla_top_ads_historico(df_daily_agg, active_days_total_ad_df, log_func, detected_currency, top_n=20):
     """List historically best performing ads by spend and ROAS."""
 
     log_func("\n\n============================================================");log_func(f"===== 6. Top {top_n} Ads Histórico (Orden: Gasto Desc > ROAS Desc) =====");log_func("============================================================")
@@ -901,7 +901,9 @@ def _generar_tabla_top_ads_historico(df_daily_agg, active_days_total_ad_df, log_
         'spend':'sum','value':'sum','purchases':'sum','clicks':'sum','visits':'sum',
         'impr':'sum','reach':'sum','rtime':'mean','rv3':'sum',
         'rv25':'sum','rv75':'sum','rv100':'sum','thruplays':'sum','puja':'mean',
-        'url_final':lambda x: aggregate_strings(x, separator=' | ', max_len=None)
+        'url_final':lambda x: aggregate_strings(x, separator=' | ', max_len=None),
+        'Públicos In': lambda x: aggregate_strings(x, separator=' | ', max_len=None),
+        'Públicos Ex': lambda x: aggregate_strings(x, separator=' | ', max_len=None)
     }
     agg_dict_available={k:v for k,v in agg_dict.items() if k in df_daily_agg_copy.columns} 
     if not agg_dict_available or 'spend' not in agg_dict_available or 'impr' not in agg_dict_available: 
@@ -951,7 +953,7 @@ def _generar_tabla_top_ads_historico(df_daily_agg, active_days_total_ad_df, log_
         df_top=df_top.head(top_n)
 
     table_headers=[
-        'Campaña','AdSet','Anuncio','URL FINAL','Puja','ThruPlays',
+        'Campaña','AdSet','Anuncio','Públicos Incluidos','Públicos Excluidos','URL FINAL','Puja','ThruPlays',
         'Reproducciones 25%','Reproducciones 75%','Reproducciones 100%',
         'Tiempo RV (s)','Días Act','Gasto','ROAS','Compras','CVR (%)','AOV','NCPA','CTR (%)','Frecuencia'
     ]
@@ -963,6 +965,8 @@ def _generar_tabla_top_ads_historico(df_daily_agg, active_days_total_ad_df, log_
         'Campaña':row_val.get('Campaign','-'),
         'AdSet':row_val.get('AdSet','-'),
         'Anuncio':row_val.get('Anuncio','-'),
+        'Públicos Incluidos':_clean_audience_string(row_val.get('Públicos In','-')),
+        'Públicos Excluidos':_clean_audience_string(row_val.get('Públicos Ex','-')),
         'URL FINAL':row_val.get('url_final','-'),
         'Puja':f"{detected_currency}{fmt_float(row_val.get('puja'),2)}" if pd.notna(row_val.get('puja')) else '-',
         'ThruPlays':fmt_int(row_val.get('thruplays')),
@@ -989,8 +993,8 @@ def _generar_tabla_top_ads_historico(df_daily_agg, active_days_total_ad_df, log_
     log_func("\n  **Detalle Top Ads Histórico:** Muestra los anuncios con mejor rendimiento histórico, ordenados primero por mayor gasto total y luego por ROAS más alto. Todas las métricas son acumuladas globales.");
     log_func("  ---")
 
-def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_days_total_ad_df, log_func, detected_currency, top_n=15):
-    """Genera tablas por semana con los Top Ads ordenados por ROAS y alcance."""
+def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_days_total_ad_df, log_func, detected_currency, top_n=20):
+    """Genera tablas por semana con los Top Ads ordenados por ROAS e impresiones."""
     group_cols = ['Campaign', 'AdSet', 'Anuncio']
     if df_daily_agg is None or df_daily_agg.empty or 'date' not in df_daily_agg.columns:
         log_func("\nNo hay datos diarios para Top Ads Bitácora.")
@@ -1052,13 +1056,19 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
 
     if not period_metrics[period_labels[0]].empty:
         ranking_df = period_metrics[period_labels[0]].copy()
-        ranking_df['rank_score'] = ranking_df['roas'] * ranking_df['reach']
         if active_days_total_ad_df is not None and not active_days_total_ad_df.empty:
-            merge_cols=[c for c in group_cols if c in active_days_total_ad_df.columns]
+            merge_cols = [c for c in group_cols if c in active_days_total_ad_df.columns]
             if merge_cols:
-                ranking_df=pd.merge(ranking_df, active_days_total_ad_df[merge_cols+['Días_Activo_Total']], on=merge_cols, how='left')
-        ranking_df = ranking_df.sort_values('rank_score', ascending=False).head(top_n)
-        ranking_df['Días_Activo_Total']=ranking_df.get('Días_Activo_Total',0).fillna(0).astype(int)
+                ranking_df = pd.merge(
+                    ranking_df,
+                    active_days_total_ad_df[merge_cols + ['Días_Activo_Total']],
+                    on=merge_cols,
+                    how='left',
+                )
+        ranking_df['Días_Activo_Total'] = ranking_df.get('Días_Activo_Total', 0).fillna(0).astype(int)
+        ranking_df['roas'] = pd.to_numeric(ranking_df.get('roas'), errors='coerce').fillna(0)
+        ranking_df['impr'] = pd.to_numeric(ranking_df.get('impr'), errors='coerce').fillna(0)
+        ranking_df = ranking_df.sort_values(['roas', 'impr'], ascending=[False, False]).head(top_n)
     else:
         log_func("\nNo hay datos para la semana actual. Top Ads Bitácora omitido.")
         return
@@ -1085,6 +1095,8 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
             ]
             if sel.empty:
                 metrics = {m: '-' for m in metric_labels}
+                aud_in = '-'
+                aud_ex = '-'
             else:
                 r_row = sel.iloc[0]
                 metrics = {
@@ -1098,11 +1110,15 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
                     'Impresiones': fmt_int(r_row.get('impr')),
                     'CTR': fmt_pct(r_row.get('ctr'),2),
                 }
+                aud_in = _clean_audience_string(r_row.get('Públicos In', '-'))
+                aud_ex = _clean_audience_string(r_row.get('Públicos Ex', '-'))
 
             row = {
                 'Anuncio': ad,
                 'Campaña': camp,
                 'AdSet': adset,
+                'Públicos Incluidos': aud_in,
+                'Públicos Excluidos': aud_ex,
                 'Días Act': dias_act,
             }
             row.update(metrics)
@@ -1110,9 +1126,9 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
 
         if table_rows:
             df_display = pd.DataFrame(table_rows)
-            column_order = ['Anuncio','Campaña','AdSet','Días Act'] + metric_labels
+            column_order = ['Anuncio','Campaña','AdSet','Públicos Incluidos','Públicos Excluidos','Días Act'] + metric_labels
             df_display = df_display[[c for c in column_order if c in df_display.columns]]
-            num_cols = [c for c in df_display.columns if c not in ['Anuncio','Campaña','AdSet']]
+            num_cols = [c for c in df_display.columns if c not in ['Anuncio','Campaña','AdSet','Públicos Incluidos','Públicos Excluidos']]
             _format_dataframe_to_markdown(df_display, f"Top {top_n} Ads Bitácora - {label}", log_func, numeric_cols_for_alignment=num_cols)
             any_table = True
 
@@ -1120,7 +1136,7 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
         log_func("\nNo hay datos para Top Ads Bitácora.")
 
     log_func("\n  **Detalle Top Ads Bitácora:**")
-    log_func("  * Tabla semanal con los anuncios con mayor ROAS y alcance.")
+    log_func("  * Tabla semanal con los anuncios con mayor ROAS y mayor número de impresiones.")
     log_func("  * Las columnas están separadas por ';' para facilitar la importación en hojas de cálculo.")
     log_func("  ---")
 

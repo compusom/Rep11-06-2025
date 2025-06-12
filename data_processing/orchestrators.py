@@ -179,7 +179,7 @@ def procesar_reporte_rendimiento(input_files, output_dir, output_filename, statu
             except Exception as e_s5: log(f"\n!!! Error Sección 5 (Análisis Ads): {e_s5} !!!\n{traceback.format_exc()}",importante=True)
             
             log("--- Iniciando Sección 6: Top Ads Histórico ---",importante=True);
-            try: _generar_tabla_top_ads_historico(df_daily_agg,active_days_ad,log,detected_currency) 
+            try: _generar_tabla_top_ads_historico(df_daily_agg,active_days_ad,log,detected_currency, top_n=20)
             except Exception as e_s6: log(f"\n!!! Error Sección 6 (Top Ads): {e_s6} !!!\n{traceback.format_exc()}",importante=True)
 
             log("\n\n============================================================");log("===== Resumen del Proceso =====");log("============================================================")
@@ -200,10 +200,10 @@ def procesar_reporte_rendimiento(input_files, output_dir, output_filename, statu
                 log(f"Adv: error al cerrar log: {e_close}")
 
 
-def procesar_reporte_bitacora(input_files, output_dir, output_filename, status_queue, 
-                               selected_campaign, selected_adsets, 
-                               current_week_start_input_str, current_week_end_input_str, 
-                               bitacora_comparison_type):
+def procesar_reporte_bitacora(input_files, output_dir, output_filename, status_queue,
+                               selected_campaign, selected_adsets,
+                               current_week_start_input_str, current_week_end_input_str,
+                               bitacora_comparison_type, months_to_compare=2):
     log_file_handler = None
     global log_summary_messages_orchestrator
     log_summary_messages_orchestrator = []
@@ -428,23 +428,26 @@ def procesar_reporte_bitacora(input_files, output_dir, output_filename, status_q
                             label_monthly = f"{label_base_monthly} {date_range_str_label_monthly}"
 
                             found_months_data.append(
-                                (datetime.combine(m_start.date(), datetime.min.time()),
-                                 datetime.combine(m_end.date(), datetime.max.time()),
-                                 label_monthly)
+                                (
+                                    datetime.combine(m_start.date(), datetime.min.time()),
+                                    datetime.combine(m_end.date(), datetime.max.time()),
+                                    label_monthly,
+                                )
                             )
-                            if len(found_months_data) >= 2: break 
+                            if len(found_months_data) >= months_to_compare:
+                                break
                         else:
                              log(f"      -> Mes {m_start.strftime('%Y-%m')} incompleto en datos ({unique_days_in_month_data}/{expected_days_in_calendar_month} días).")
                     else:
                         log(f"      -> Mes calendario {m_start.strftime('%Y-%m')} no está completamente dentro del rango de datos ({min_date_overall.strftime('%Y-%m')} - {max_date_overall.strftime('%Y-%m')}). No se considera para 'mes completo'.")
 
                 if len(found_months_data) >= 1:
-                    bitacora_periods_list.extend(found_months_data) 
+                    bitacora_periods_list.extend(found_months_data[:months_to_compare])
                     log(f"  Mes Actual para Bitácora Mensual: {found_months_data[0][2]}")
-                    if len(found_months_data) >= 2:
+                    if len(found_months_data) >= 2 and months_to_compare >= 2:
                         log(f"  Mes Anterior 1 para Bitácora Mensual: {found_months_data[1][2]}")
-                    else:
-                        log("  No se encontró un segundo mes calendario completo para comparación mensual.")
+                    if len(found_months_data) < months_to_compare:
+                        log("  No se encontraron suficientes meses calendario completos para la comparación solicitada.")
                 else:
                      log("\nNo se encontró ningún mes calendario completo en los datos para generar la Bitácora Mensual.")
 
@@ -482,7 +485,7 @@ def procesar_reporte_bitacora(input_files, output_dir, output_filename, status_q
 
             _generar_tabla_embudo_bitacora(df_daily_total_for_bitacora, bitacora_periods_list, log, detected_currency, period_type=bitacora_comparison_type)
 
-            _generar_tabla_bitacora_top_ads(df_daily_agg_full, bitacora_periods_list, active_days_ad, log, detected_currency)
+            _generar_tabla_bitacora_top_ads(df_daily_agg_full, bitacora_periods_list, active_days_ad, log, detected_currency, top_n=20)
             _generar_tabla_bitacora_top_adsets(df_daily_agg_full, bitacora_periods_list, active_days_adset, log, detected_currency)
             _generar_tabla_bitacora_top_campaigns(df_daily_agg_full, bitacora_periods_list, active_days_campaign, log, detected_currency)
 
