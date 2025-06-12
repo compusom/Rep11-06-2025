@@ -21,9 +21,11 @@ from .metric_calculators import _calcular_metricas_agregadas_y_estabilidad, _cal
 from config import numeric_internal_cols # Importar desde la raíz del proyecto
 from utils import aggregate_strings
 
+
 # ============================================================
 # GENERACIÓN DE SECCIONES DEL REPORTE
 # ============================================================
+
 
 def _generar_tabla_vertical_global(df_daily_agg, detected_currency, log_func):
     """Build the summary table with global metrics and last month comparison."""
@@ -98,10 +100,12 @@ def _generar_tabla_vertical_global(df_daily_agg, detected_currency, log_func):
 
 
 
+
 def _generar_tabla_vertical_entidad(entity_level, entity_name, dias_activos_total, df_daily_entity,
                                     min_entity_dt, max_entity_dt, adset_count,
                                     periods, detected_currency, log_func, period_type="Days"):
     """Generate the vertical metrics table for a specific campaign/ad/adset."""
+
 
     header_label=entity_level.capitalize(); date_range_str=f"({min_entity_dt.strftime('%d/%m/%y')} - {max_entity_dt.strftime('%d/%m/%y')})" if min_entity_dt and max_entity_dt else ""; adset_count_str=f"(AdSets: {adset_count}) " if entity_level.lower()=='campaña' and adset_count is not None else ""
     log_func(f"\n\n--------------------------------------------------------------------------------"); log_func(f" {header_label}: {entity_name} {adset_count_str}{date_range_str} (Días Activo Total: {fmt_int(dias_activos_total)})"); log_func(f"--------------------------------------------------------------------------------")
