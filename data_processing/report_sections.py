@@ -994,7 +994,7 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, log_fun
 
     log_func(f"\n** Top {top_n} Ads Bitácora (Reach Desc, ROAS Desc)**")
     top_keys = ranking_df[group_cols]
-    header = "Período|ROAS|Inversión|Compras|CPA|Alcance|Impresiones|CTR|CPM|%RV75|Tiempo(s)"
+
 
     for _, key_row in top_keys.iterrows():
         camp = key_row.get('Campaign', '-')
@@ -1007,7 +1007,7 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, log_fun
         for label in period_labels:
             df_metrics = period_metrics.get(label)
             if df_metrics is None or df_metrics.empty:
-                log_func(f"{label}|-|-|-|-|-|-|-|-|-")
+
                 continue
             sel = df_metrics[
                 (df_metrics['Campaign'] == camp) &
@@ -1015,7 +1015,7 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, log_fun
                 (df_metrics['Anuncio'] == ad)
             ]
             if sel.empty:
-                log_func(f"{label}|-|-|-|-|-|-|-|-|-")
+
                 continue
             r_row = sel.iloc[0]
             roas = f"{fmt_float(r_row.get('roas'),2)}x"
@@ -1026,9 +1026,7 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, log_fun
             impr = fmt_int(r_row.get('impr'))
             ctr = fmt_pct(r_row.get('ctr'),2)
             cpm = f"{detected_currency}{fmt_float(r_row.get('cpm'),2)}"
-            rv75 = fmt_pct(r_row.get('rv75_pct'),1)
-            rtime = f"{fmt_float(r_row.get('rtime'),1)}s"
-            log_func(f"{label}|{roas}|{spend}|{purchases}|{cpa}|{reach}|{impr}|{ctr}|{cpm}|{rv75}|{rtime}")
+
 
 def _generar_tabla_bitacora_entidad(entity_level, entity_name, df_daily_entity,
                                    bitacora_periods_list, detected_currency, log_func, period_type="Weeks"):
