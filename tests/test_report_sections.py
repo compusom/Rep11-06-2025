@@ -1,6 +1,7 @@
 import pandas as pd
 from datetime import datetime
 from data_processing.report_sections import _generar_tabla_bitacora_top_ads
+from data_processing.report_sections import _clean_audience_string
 
 
 def test_top_ads_audience_lines(capsys):
@@ -43,3 +44,6 @@ def test_top_ads_audience_lines(capsys):
     assert 'Inc1' in output and 'Inc2' in output
     assert 'Públicos Excluidos:' in output
     assert 'Exc1' in output and 'Exc2' in output
+
+def test_clean_audience_string():
+    assert _clean_audience_string('123:Aud1 | 456:Aud2') == 'Aud1 | Aud2'
