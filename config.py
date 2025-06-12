@@ -62,6 +62,8 @@ norm_map = {
     'thruplays': [normalize('ThruPlays')],
     'puja': [normalize('Puja')],
     'url_final': [normalize('URL del sitio web'), normalize('Website URL')],
+    'interacciones': [normalize('Interacciones con la publicación'), normalize('Post engagement')],
+    'comentarios': [normalize('Comentarios de publicaciones'), normalize('Post comments')],
 }
 
 numeric_internal_cols = [
@@ -73,7 +75,7 @@ numeric_internal_cols = [
     'addcart', 'checkout', 'purchases', 
     'value', 'value_avg', 'roas', 'cpa', 'ncpa', 'aov', 'cvr',
     'rv3', 'rv25', 'rv75', 'rv100', 'rtime' # Video
-    ,'thruplays','puja'
+    ,'thruplays','puja','interacciones','comentarios'
 ]
 
 # Símbolos de moneda preferidos (puedes expandir esto)
