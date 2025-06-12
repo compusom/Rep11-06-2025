@@ -42,16 +42,16 @@ This document lists the columns present in the imported Excel reports and how th
 | Clics en el enlace | clicks | numeric | mapped via `norm_map` |
 | Información de pago agregada | checkout | numeric | mapped via `norm_map` (as part of checkout metrics) |
 | Interacción con la página | - | numeric | not used |
-| Comentarios de publicaciones | comentarios | numeric | mapped via `norm_map` |
-| Interacciones con la publicación | interacciones | numeric | mapped via `norm_map` |
+| Comentarios de publicaciones / Comentarios | comentarios | numeric | mapped via `norm_map` |
+| Interacciones con la publicación / Interacciones | interacciones | numeric | mapped via `norm_map` |
 | Reacciones a publicaciones | - | numeric | not used |
 | Veces que se guardaron las publicaciones | - | numeric | not used |
 | Veces que se compartieron las publicaciones | - | numeric | not used |
 | ThruPlays | thruplays | numeric | mapped via `norm_map` |
 | CTR único (todos) | ctr_unico_todos | numeric | mapped via `norm_map` |
-| Puja | puja | numeric | mapped via `norm_map` |
+| Puja | puja | numeric | mapped via `norm_map` (also accepts "Bid") |
 | Tipo de puja | - | string | not used |
-| URL del sitio web | url_final | string | mapped via `norm_map` |
+| URL del sitio web / URL | url_final | string | mapped via `norm_map` |
 | CTR (porcentaje de clics en el enlace) | - | numeric | not used |
 | Divisa | - | string | not used; symbol extracted from `Importe gastado` |
 | Interes | interest | numeric | mapped via `norm_map` |

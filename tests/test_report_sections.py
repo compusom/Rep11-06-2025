@@ -53,6 +53,9 @@ def test_top_ads_audience_lines(capsys):
     assert 'Interacciones:' in output
     assert 'Comentarios:' in output
     assert 'Tiempo promedio de reproducción del video:' in output
+    assert 'Anuncio: Ad1;' in output
+    assert 'Campaña: Camp;' in output
+    assert 'Días Activos: 2;' in output
 
 def test_clean_audience_string():
     assert _clean_audience_string('123:Aud1 | 456:Aud2') == 'Aud1 | Aud2'
