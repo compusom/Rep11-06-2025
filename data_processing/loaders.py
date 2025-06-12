@@ -169,14 +169,17 @@ def _cargar_y_preparar_datos(input_files, status_queue, selected_campaign):
             log_and_update("     Limpieza numérica OK.")
             
             def extract_ad_name_safe(txt):
-                if pd.isna(txt): return ""
+                """Clean ad name removing pipes and normalizing."""
+                if pd.isna(txt):
+                    return ""
                 try:
-                    s = str(txt)
-                    return normalize(
-                        s.split('🆔')[-1].strip()
-                        if '🆔' in s and len(s.split('🆔')) > 1 and s.split('🆔')[-1].strip()
-                        else s
-                    )
+                    s = str(txt).replace('|', '')
+                    if '🆔' in s:
+                        part = s.split('🆔')[-1].strip()
+                        if part:
+                            s = part
+                    s = s.replace('|', '').strip()
+                    return normalize(s)
                 except Exception as e_extract:
                     log_and_update(f"     Adv: error extracting ad name: {e_extract}")
                     return ""
