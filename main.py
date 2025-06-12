@@ -8,63 +8,71 @@ import os
 import traceback
 import logging
 
+DEBUG_MODE = '--debug' in sys.argv
+if DEBUG_MODE:
+    sys.argv.remove('--debug')
+logging.basicConfig(
+    level=logging.DEBUG if DEBUG_MODE else logging.INFO,
+    format='%(levelname)s:%(message)s'
+)
+
 # --- INICIO DE MODIFICACIÓN PARA RESOLVER ModuleNotFoundError ---
 current_script_directory = os.path.dirname(os.path.abspath(__file__))
 if current_script_directory not in sys.path:
     sys.path.insert(0, current_script_directory)
 
-print(f"DEBUG: main.py __file__: {__file__}")
-print(f"DEBUG: current_script_directory (debe ser la raíz de tu proyecto): {current_script_directory}")
-print("DEBUG: sys.path ANTES de importar data_processing:")
+logging.debug(f"main.py __file__: {__file__}")
+logging.debug(f"current_script_directory (debe ser la raíz de tu proyecto): {current_script_directory}")
+logging.debug("sys.path ANTES de importar data_processing:")
 for p_path in sys.path:
-    print(f"  - {p_path}")
+    logging.debug("  - %s", p_path)
 
 # --- VERIFICACIÓN EXHAUSTIVA DE LA CARPETA DATA_PROCESSING ---
-print("\nDEBUG: Verificando la carpeta 'data_processing'...")
+logging.debug("Verificando la carpeta 'data_processing'...")
 data_processing_path_expected = os.path.join(current_script_directory, "data_processing")
-print(f"DEBUG: Ruta esperada para data_processing: {data_processing_path_expected}")
+logging.debug("Ruta esperada para data_processing: %s", data_processing_path_expected)
 
 if os.path.isdir(data_processing_path_expected):
-    print("DEBUG: OK - La ruta es un directorio.")
+    logging.debug("OK - La ruta es un directorio.")
     init_py_path_expected = os.path.join(data_processing_path_expected, "__init__.py")
-    print(f"DEBUG: Ruta esperada para __init__.py: {init_py_path_expected}")
+    logging.debug("Ruta esperada para __init__.py: %s", init_py_path_expected)
     if os.path.isfile(init_py_path_expected):
-        print("DEBUG: OK - El archivo __init__.py existe.")
+        logging.debug("OK - El archivo __init__.py existe.")
         try:
             import importlib.util
             spec = importlib.util.spec_from_file_location("data_processing", init_py_path_expected)
             if spec and spec.loader:
                 dp_module_test = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(dp_module_test) # type: ignore
-                print(f"DEBUG: OK - Prueba de carga de 'data_processing' (via __init__.py) exitosa: {dp_module_test}")
+                logging.debug("OK - Prueba de carga de 'data_processing' (via __init__.py) exitosa: %s", dp_module_test)
             else:
-                print("FATAL DEBUG: No se pudo obtener la especificación o el cargador para data_processing/__init__.py.")
+                logging.error("No se pudo obtener la especificación o el cargador para data_processing/__init__.py.")
         except Exception as e_init_test:
-            print(f"FATAL DEBUG: Error durante la prueba de carga de data_processing/__init__.py: {e_init_test}")
+            logging.error("Error durante la prueba de carga de data_processing/__init__.py: %s", e_init_test)
             traceback.print_exc()
     else:
-        print("FATAL DEBUG: ERROR - El archivo __init__.py NO existe en la ruta esperada.")
-        print("             Por favor, crea un archivo vacío llamado '__init__.py' (dos guiones bajos al inicio y al final)")
-        print(f"             dentro de la carpeta: {data_processing_path_expected}")
+        logging.error("El archivo __init__.py NO existe en la ruta esperada.")
+        logging.error("Por favor, crea un archivo vacío llamado '__init__.py' (dos guiones bajos al inicio y al final)")
+        logging.error("Dentro de la carpeta: %s", data_processing_path_expected)
 else:
-    print("FATAL DEBUG: ERROR - La carpeta 'data_processing' NO existe en la ruta esperada o no es un directorio.")
-    print("             Por favor, asegúrate de que la carpeta se llama exactamente 'data_processing' (todo en minúsculas, con guion bajo)")
-    print(f"             y está ubicada en: {current_script_directory}")
+    logging.error("La carpeta 'data_processing' NO existe en la ruta esperada o no es un directorio.")
+    logging.error("Por favor, asegúrate de que la carpeta se llama exactamente 'data_processing' (todo en minúsculas, con guion bajo)")
+    logging.error("y está ubicada en: %s", current_script_directory)
 
-print("\nDEBUG: Listado de la carpeta raíz del proyecto:")
+logging.debug("Listado de la carpeta raíz del proyecto:")
 try:
     for item in os.listdir(current_script_directory):
-        print(f"  - {item} {'(DIR)' if os.path.isdir(os.path.join(current_script_directory, item)) else '(FILE)'}")
+        logging.debug("  - %s %s", item, '(DIR)' if os.path.isdir(os.path.join(current_script_directory, item)) else '(FILE)')
 except Exception as e_listdir_root:
-    print(f"  ERROR listando directorio raíz: {e_listdir_root}")
+    logging.error("ERROR listando directorio raíz: %s", e_listdir_root)
 
 if os.path.isdir(data_processing_path_expected):
-    print(f"\nDEBUG: Listado de la carpeta '{data_processing_path_expected}':")
+    logging.debug("Listado de la carpeta '%s':", data_processing_path_expected)
     try:
         for item in os.listdir(data_processing_path_expected):
-            print(f"  - {item} {'(DIR)' if os.path.isdir(os.path.join(data_processing_path_expected, item)) else '(FILE)'}")
+            logging.debug("  - %s %s", item, '(DIR)' if os.path.isdir(os.path.join(data_processing_path_expected, item)) else '(FILE)')
     except Exception as e_listdir_dp:
-        print(f"  ERROR listando directorio data_processing: {e_listdir_dp}")
+        logging.error("ERROR listando directorio data_processing: %s", e_listdir_dp)
 # --- FIN VERIFICACIÓN EXHAUSTIVA ---
 
 
@@ -72,18 +80,18 @@ if os.path.isdir(data_processing_path_expected):
 procesar_reporte_rendimiento_func = None
 procesar_reporte_bitacora_func = None
 try:
-    print("\nDEBUG: Intentando: from data_processing.orchestrators import ...")
+    logging.debug("Intentando: from data_processing.orchestrators import ...")
     from data_processing.orchestrators import procesar_reporte_rendimiento, procesar_reporte_bitacora
     procesar_reporte_rendimiento_func = procesar_reporte_rendimiento
     procesar_reporte_bitacora_func = procesar_reporte_bitacora
-    print("DEBUG: Importación de orchestrators A NIVEL DE MODULO exitosa.")
+    logging.debug("Importación de orchestrators A NIVEL DE MODULO exitosa.")
 except ModuleNotFoundError as e_mnfe:
-    print(f"FATAL DEBUG (Importación Nivel Módulo): ModuleNotFoundError: {e_mnfe}")
+    logging.error("ModuleNotFoundError al importar orchestrators: %s", e_mnfe)
 except ImportError as e_ie:
-    print(f"FATAL DEBUG (Importación Nivel Módulo): ImportError: {e_ie}")
+    logging.error("ImportError al importar orchestrators: %s", e_ie)
     traceback.print_exc()
 except Exception as e_ge:
-    print(f"FATAL DEBUG (Importación Nivel Módulo): Exception: {e_ge}")
+    logging.error("Error inesperado al importar orchestrators: %s", e_ge)
     traceback.print_exc()
 # --- FIN Intento de importación INMEDIATO ---
 
@@ -113,9 +121,9 @@ warnings.filterwarnings('ignore', r'invalid value encountered')
 try:
     from dateutil.relativedelta import relativedelta
     from dateutil.parser import parse as date_parse
-    print("INFO: dateutil importado OK.")
+    logging.info("dateutil importado OK.")
 except ImportError:
-    print("¡ERROR! Falta 'python-dateutil'. Instala con: pip install python-dateutil")
+    logging.warning("Falta 'python-dateutil'. Instala con: pip install python-dateutil")
     relativedelta = None
     date_parse = None
 
@@ -125,27 +133,27 @@ from tkinter import ttk, simpledialog, filedialog, messagebox, scrolledtext
 try:
     import sv_ttk
 except ImportError:
-    print("Advertencia: sv_ttk no encontrado.")
+    logging.warning("sv_ttk no encontrado.")
     sv_ttk = None
 
 try:
     from tkcalendar import Calendar
-    print("INFO: tkcalendar OK.")
+    logging.info("tkcalendar OK.")
 except ImportError:
-    print("¡ADVERTENCIA! Falta 'tkcalendar'. El selector de calendario no estará disponible.")
-    print("Instala con: pip install tkcalendar")
+    logging.warning("Falta 'tkcalendar'. El selector de calendario no estará disponible.")
+    logging.warning("Instala con: pip install tkcalendar")
     Calendar = None
 
 try:
     _tk_test_root = tk.Tk()
     _tk_test_root.withdraw()
     _tk_test_root.destroy()
-    print("INFO: tkinter OK.")
+    logging.info("tkinter OK.")
 except NameError:
-    print("FATAL: tkinter alias 'tk' no definido.");
+    logging.error("tkinter alias 'tk' no definido.")
     sys.exit()
 except Exception as e:
-    print(f"INFO: Problema tkinter ({e}). Continuando...")
+    logging.info("Problema tkinter (%s). Continuando...", e)
 
 log_summary_messages = []
 
@@ -162,9 +170,9 @@ class ReportApp:
         if 'sv_ttk' in globals() and sv_ttk:
             try:
                 sv_ttk.set_theme("light")
-                print("INFO: Tema sv-ttk 'light' aplicado.")
+                logging.info("Tema sv-ttk 'light' aplicado.")
             except Exception as e_svttk:
-                print(f"Adv: sv_ttk ({e_svttk}). Fallback.")
+                logging.warning("sv_ttk (%s). Fallback.", e_svttk)
                 self._apply_standard_theme()
         else:
             self._apply_standard_theme()
