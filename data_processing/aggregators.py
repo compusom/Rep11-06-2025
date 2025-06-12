@@ -77,6 +77,9 @@ def _agregar_datos_diarios(df_combined, status_queue, selected_adsets=None):
         df_daily['rv25_pct']=safe_division_pct(rv25_s,base_rv_val); df_daily['rv75_pct']=safe_division_pct(rv75_s,base_rv_val); df_daily['rv100_pct']=safe_division_pct(rv100_s,base_rv_val)
         df_daily['lpv_rate']=safe_division_pct(vi_visits,c_clicks); df_daily['purchase_rate']=safe_division_pct(p_purch,vi_visits)
         df_daily['ctr_out'] = safe_division_pct(co_clicks_out, i_impr)
+        df_daily['aov'] = safe_division(v_value, p_purch)
+        df_daily['cvr'] = df_daily['purchase_rate']
+        df_daily['ncpa'] = df_daily['cpa']
 
         log_and_update("Métricas derivadas diarias calculadas.")
         log_and_update("Agregación diaria finalizada."); return df_daily

@@ -8,7 +8,8 @@ def test_safe_division_scalar():
 
 def test_safe_division_series():
     result = safe_division(pd.Series([1, 2]), pd.Series([2, 0]))
-    assert result.tolist() == [0.5, np.nan]
+    assert result.iloc[0] == 0.5
+    assert np.isnan(result.iloc[1])
 
 def test_safe_division_pct():
     assert safe_division_pct(1, 2) == 50.0
