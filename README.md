@@ -54,3 +54,8 @@ pytest
 ## Contributing
 
 Pull requests that introduce useful scripts, improve documentation, or help define the project structure are welcome. Feel free to open issues to discuss ideas or report problems.
+
+## Recent Updates
+
+The data processing pipeline now computes additional advertising metrics such as CVR (conversion rate), AOV (average order value) and NCPA (net cost per acquisition). Top ads tables include active-day counts and audience details to provide better insight into performance over time.
+
