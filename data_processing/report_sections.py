@@ -975,7 +975,9 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
     agg_dict = {
         'spend': 'sum', 'value': 'sum', 'purchases': 'sum', 'clicks': 'sum',
         'clicks_out': 'sum', 'impr': 'sum', 'reach': 'sum', 'visits': 'sum',
-        'rv3': 'sum', 'rv25': 'sum', 'rv75': 'sum', 'rv100': 'sum', 'rtime': 'mean'
+        'rv3': 'sum', 'rv25': 'sum', 'rv75': 'sum', 'rv100': 'sum', 'rtime': 'mean',
+        'Públicos In': lambda x: aggregate_strings(x, separator=' | ', max_len=None),
+        'Públicos Ex': lambda x: aggregate_strings(x, separator=' | ', max_len=None)
     }
 
     period_metrics = {}
@@ -1031,7 +1033,17 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
 
 
     log_func(f"\n** Top {top_n} Ads Bitácora (Reach Desc, ROAS Desc)**")
-    top_keys = ranking_df[group_cols + ['Días_Activo_Total']]
+    audience_cols = [c for c in ['Públicos In', 'Publicos In', 'Públicos Incluidos', 'Publicos Incluidos'] if c in ranking_df.columns]
+    audience_ex_cols = [c for c in ['Públicos Ex', 'Publicos Ex', 'Públicos Excluidos', 'Publicos Excluidos'] if c in ranking_df.columns]
+    pub_in_col = audience_cols[0] if audience_cols else None
+    pub_ex_col = audience_ex_cols[0] if audience_ex_cols else None
+
+    select_cols = group_cols + ['Días_Activo_Total']
+    if pub_in_col:
+        select_cols.append(pub_in_col)
+    if pub_ex_col:
+        select_cols.append(pub_ex_col)
+    top_keys = ranking_df[select_cols]
 
     header = (
         "Período\tROAS\tInversión\tCompras\tNCPA\tCVR\tAOV\tAlcance\tImpresiones\tCTR"
@@ -1042,10 +1054,18 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
         adset = key_row.get('AdSet', '-')
         ad = key_row.get('Anuncio', '-')
         dias_act = int(key_row.get('Días_Activo_Total', 0))
+        pub_in_val = key_row.get(pub_in_col, '-') if pub_in_col else '-'
+        pub_ex_val = key_row.get(pub_ex_col, '-') if pub_ex_col else '-'
+        if not str(pub_in_val).strip():
+            pub_in_val = '-'
+        if not str(pub_ex_val).strip():
+            pub_ex_val = '-'
         log_func(f"\nAnuncio: {ad}")
         log_func(f"Campaña: {camp}")
         log_func(f"AdSet: {adset}")
         log_func(f"Días Activos: {dias_act}")
+        log_func(f"Públicos incluidos: {pub_in_val}")
+        log_func(f"Públicos excluidos: {pub_ex_val}")
         log_func(header)
         for label in period_labels:
             df_metrics = period_metrics.get(label)
