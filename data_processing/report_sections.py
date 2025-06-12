@@ -924,9 +924,20 @@ def _generar_tabla_top_ads_historico(df_daily_agg, active_days_total_ad_df, log_
         num_cols=[h for h in df_display.columns if h not in ['Campaña','AdSet','Anuncio']] 
         _format_dataframe_to_markdown(df_display,f"** Top {top_n} Ads por Gasto > ROAS (Global Acumulado) **",log_func,currency_cols=detected_currency, stability_cols=[], numeric_cols_for_alignment=num_cols)
     else: log_func(f"   No hay datos para mostrar en Top {top_n} Ads.");
-    log_func("\n  **Detalle Top Ads Histórico:** Muestra los anuncios con mejor rendimiento histórico, ordenados primero por mayor gasto total y luego por ROAS más alto. Todas las métricas son acumuladas globales.");
-    log_func("  ---")
+def _generar_tabla_bitacora_top_ads(
+    df_daily_agg,
+    bitacora_periods_list,
+    log_func,
+    detected_currency,
+    top_n=15,
+    ranking_metric="reach",
+):
+    """Genera una tabla con los top Ads para un período de bitácora.
 
+    Permite ordenar el ranking inicial por ``ranking_metric`` (``"reach"`` o
+    ``"roas"``) usando la semana más reciente. En ambos casos el segundo
+    criterio de ordenamiento es el restante.
+    el ranking inicial.
 def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, log_func, detected_currency, top_n=15):
     """Genera una tabla con los top Ads por alcance ordenados por ROAS.
 
@@ -962,8 +973,15 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, log_fun
             s = df_g.get('spend', pd.Series(np.nan, index=df_g.index))
             v = df_g.get('value', pd.Series(np.nan, index=df_g.index))
             p = df_g.get('purchases', pd.Series(np.nan, index=df_g.index))
-            c = df_g.get('clicks', pd.Series(np.nan, index=df_g.index))
-            co = df_g.get('clicks_out', pd.Series(np.nan, index=df_g.index))
+        df_base = period_metrics[period_labels[0]].copy()
+        if ranking_metric == "roas":
+            sort_cols = ["roas", "reach"]
+        else:
+            sort_cols = ["reach", "roas"]
+        ranking_df = df_base.sort_values(sort_cols, ascending=[False, False]).head(top_n)
+    header_title = "Reach" if ranking_metric != "roas" else "ROAS"
+    second_title = "ROAS" if ranking_metric != "roas" else "Reach"
+    log_func(f"\n** Top {top_n} Ads Bitácora ({header_title} Desc, {second_title} Desc)**")
             i = df_g.get('impr', pd.Series(np.nan, index=df_g.index))
             r = df_g.get('reach', pd.Series(np.nan, index=df_g.index))
             vi = df_g.get('visits', pd.Series(np.nan, index=df_g.index))
