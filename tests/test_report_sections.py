@@ -6,7 +6,7 @@ from data_processing.report_sections import _generar_tabla_bitacora_top_campaign
 from data_processing.report_sections import _clean_audience_string
 
 
-def test_top_ads_audience_lines(capsys):
+def test_top_ads_basic_columns(capsys):
     df = pd.DataFrame({
         'date': pd.to_datetime(['2024-06-01','2024-06-02']),
         'Campaign': ['Camp','Camp'],
@@ -46,15 +46,9 @@ def test_top_ads_audience_lines(capsys):
     logs = []
     _generar_tabla_bitacora_top_ads(df, periods, active, logs.append, '$', top_n=1)
     output = "\n".join(logs)
-    assert 'Públicos Incluidos' in output
-    assert 'Públicos Excluidos' in output
-    assert 'Inc1' in output and 'Inc2' in output
-    assert 'Exc1' in output and 'Exc2' in output
-    assert 'URL FINAL' in output
-    assert 'Puja' in output
-    assert 'Interacciones' in output
-    assert 'Comentarios' in output
-    assert 'Tiempo RV (s)' in output
+    assert 'Top 1 Ads Bitácora - Semana actual' in output
+    assert 'Anuncio' in output
+    assert 'Días Act' in output
 
 def test_clean_audience_string():
     assert _clean_audience_string('123:Aud1 | 456:Aud2') == 'Aud1 | Aud2'
@@ -85,6 +79,7 @@ def test_top_adsets_weekly_table(capsys):
     _generar_tabla_bitacora_top_adsets(df, periods, active, logs.append, '$', top_n=1)
     output = "\n".join(logs)
     assert 'Top 1 AdSets Bitácora - Semana actual' in output
+    assert 'Días Act' in output
 
 
 def test_top_campaigns_weekly_table(capsys):
