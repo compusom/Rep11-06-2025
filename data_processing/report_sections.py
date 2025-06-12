@@ -793,7 +793,7 @@ def _generar_analisis_ads(df_combined, df_daily_agg, active_days_total_ad_df, lo
          log_func("Adv: No se pudo ordenar por gasto (columna ausente).")
          df_ads_sorted_spend = filtered_ads.copy()
 
-    t1_headers=['Campaña','AdSet','Nombre ADs','dias','Estado','Alcance','ROAS','Compras','CPM','CTR','CTR Saliente','Var U7 CTR','Var U7 ROAS','Var U7 Freq','Var U7 CPM','Var U7 Compras']
+    t1_headers=['Campaña','AdSet','Nombre ADs','dias','Estado','Alcance','ROAS','Compras','CVR (%)','AOV','NCPA','CPM','CTR','CTR Saliente','Var U7 CTR','Var U7 ROAS','Var U7 Freq','Var U7 CPM','Var U7 Compras']
     t1_data=[]
     for _,r_row in df_ads_sorted_spend.iterrows(): t1_data.append({
         'Campaña':r_row.get('Campaign','-'),
@@ -804,6 +804,9 @@ def _generar_analisis_ads(df_combined, df_daily_agg, active_days_total_ad_df, lo
         'Alcance':fmt_int(r_row.get('reach_global')),
         'ROAS':f"{fmt_float(r_row.get('roas_global'),2)}x",
         'Compras':fmt_int(r_row.get('purchases_global')),
+        'CVR (%)':fmt_pct(safe_division_pct(r_row.get('purchases_global'), r_row.get('visits_global')),2),
+        'AOV':f"{detected_currency}{fmt_float(safe_division(r_row.get('value_global'), r_row.get('purchases_global')),2)}",
+        'NCPA':f"{detected_currency}{fmt_float(r_row.get('cpa_global'),2)}",
         'CPM':f"{detected_currency}{fmt_float(r_row.get('cpm_global'),2)}",
         'CTR':fmt_pct(r_row.get('ctr_global'),2),
         'CTR Saliente':fmt_pct(r_row.get('ctr_out_global'),2),
@@ -887,7 +890,7 @@ def _generar_tabla_top_ads_historico(df_daily_agg, active_days_total_ad_df, log_
         if col in df_daily_agg_copy.columns:
             df_daily_agg_copy[col] = df_daily_agg_copy[col].astype(str)
 
-    agg_dict={'spend':'sum','value':'sum','purchases':'sum','clicks':'sum','impr':'sum','reach':'sum','rtime':'mean', 'rv3':'sum'}
+    agg_dict={'spend':'sum','value':'sum','purchases':'sum','clicks':'sum','visits':'sum','impr':'sum','reach':'sum','rtime':'mean', 'rv3':'sum'}
     agg_dict_available={k:v for k,v in agg_dict.items() if k in df_daily_agg_copy.columns} 
     if not agg_dict_available or 'spend' not in agg_dict_available or 'impr' not in agg_dict_available: 
         log_func("   No hay métricas suficientes (falta spend o impr) para agregar para Top Ads."); return
@@ -925,7 +928,7 @@ def _generar_tabla_top_ads_historico(df_daily_agg, active_days_total_ad_df, log_
         log_func("   No se pudo ordenar Top Ads (faltan columnas spend/roas). Mostrando los primeros {top_n}.")
         df_top=df_top.head(top_n)
 
-    table_headers=['Campaña','AdSet','Anuncio','Días Act','Gasto','ROAS','Compras','CTR (%)','Frecuencia','Tiempo RV (s)']
+    table_headers=['Campaña','AdSet','Anuncio','Días Act','Gasto','ROAS','Compras','CVR (%)','AOV','NCPA','CTR (%)','Frecuencia','Tiempo RV (s)']
     table_data=[]
     for _,row_val in df_top.iterrows(): table_data.append({
         'Campaña':row_val.get('Campaign','-'),
@@ -935,6 +938,9 @@ def _generar_tabla_top_ads_historico(df_daily_agg, active_days_total_ad_df, log_
         'Gasto':f"{detected_currency}{fmt_float(row_val.get('spend'),0)}",
         'ROAS':f"{fmt_float(row_val.get('roas'),2)}x",
         'Compras':fmt_int(row_val.get('purchases')),
+        'CVR (%)':fmt_pct(safe_division_pct(row_val.get('purchases'), row_val.get('visits')),2),
+        'AOV':f"{detected_currency}{fmt_float(safe_division(row_val.get('value'), row_val.get('purchases')),2)}",
+        'NCPA':f"{detected_currency}{fmt_float(safe_division(row_val.get('spend'), row_val.get('purchases')),2)}",
         'CTR (%)':fmt_pct(row_val.get('ctr'),2),
         'Frecuencia':fmt_float(row_val.get('frequency'),2),
         'Tiempo RV (s)':f"{fmt_float(row_val.get('rtime'),1)}s",
@@ -948,7 +954,7 @@ def _generar_tabla_top_ads_historico(df_daily_agg, active_days_total_ad_df, log_
     log_func("\n  **Detalle Top Ads Histórico:** Muestra los anuncios con mejor rendimiento histórico, ordenados primero por mayor gasto total y luego por ROAS más alto. Todas las métricas son acumuladas globales.");
     log_func("  ---")
 
-def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, log_func, detected_currency, top_n=15):
+def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_days_total_ad_df, log_func, detected_currency, top_n=15):
     """Genera una tabla con los top Ads por alcance ordenados por ROAS.
 
     Muestra las principales métricas para tres periodos de 7 días (semana actual
@@ -1008,31 +1014,40 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, log_fun
         period_metrics[label] = df_g
 
     if not period_metrics[period_labels[0]].empty:
-        ranking_df = period_metrics[period_labels[0]].sort_values(['reach', 'roas'], ascending=[False, False]).head(top_n)
+        ranking_df = period_metrics[period_labels[0]].copy()
+        ranking_df['rank_score'] = ranking_df['roas'] * ranking_df['reach']
+        if active_days_total_ad_df is not None and not active_days_total_ad_df.empty:
+            merge_cols=[c for c in group_cols if c in active_days_total_ad_df.columns]
+            if merge_cols:
+                ranking_df=pd.merge(ranking_df, active_days_total_ad_df[merge_cols+['Días_Activo_Total']], on=merge_cols, how='left')
+        ranking_df = ranking_df.sort_values('rank_score', ascending=False).head(top_n)
+        ranking_df['Días_Activo_Total']=ranking_df.get('Días_Activo_Total',0).fillna(0).astype(int)
     else:
         log_func("\nNo hay datos para la semana actual. Top Ads Bitácora omitido.")
         return
 
 
     log_func(f"\n** Top {top_n} Ads Bitácora (Reach Desc, ROAS Desc)**")
-    top_keys = ranking_df[group_cols]
+    top_keys = ranking_df[group_cols + ['Días_Activo_Total']]
 
     header = (
-        "Período\tROAS\tInversión\tCompras\tCPA\tAlcance\tImpresiones\tCTR"
+        "Período\tROAS\tInversión\tCompras\tNCPA\tCVR\tAOV\tAlcance\tImpresiones\tCTR"
     )
 
     for _, key_row in top_keys.iterrows():
         camp = key_row.get('Campaign', '-')
         adset = key_row.get('AdSet', '-')
         ad = key_row.get('Anuncio', '-')
+        dias_act = int(key_row.get('Días_Activo_Total', 0))
         log_func(f"\nAnuncio: {ad}")
         log_func(f"Campaña: {camp}")
         log_func(f"AdSet: {adset}")
+        log_func(f"Días Activos: {dias_act}")
         log_func(header)
         for label in period_labels:
             df_metrics = period_metrics.get(label)
             if df_metrics is None or df_metrics.empty:
-                log_func(f"{label}\t-\t-\t-\t-\t-\t-\t-")
+                log_func(f"{label}\t-\t-\t-\t-\t-\t-\t-\t-\t-")
                 continue
             sel = df_metrics[
                 (df_metrics['Campaign'] == camp) &
@@ -1040,18 +1055,20 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, log_fun
                 (df_metrics['Anuncio'] == ad)
             ]
             if sel.empty:
-                log_func(f"{label}\t-\t-\t-\t-\t-\t-\t-")
+                log_func(f"{label}\t-\t-\t-\t-\t-\t-\t-\t-\t-")
                 continue
             r_row = sel.iloc[0]
             roas = f"{fmt_float(r_row.get('roas'),2)}x"
             spend = f"{detected_currency}{fmt_float(r_row.get('spend'),2)}"
             purchases = fmt_int(r_row.get('purchases'))
-            cpa = f"{detected_currency}{fmt_float(r_row.get('cpa'),2)}"
+            ncpa = f"{detected_currency}{fmt_float(safe_division(r_row.get('spend'), r_row.get('purchases')),2)}"
+            cvr = fmt_pct(safe_division_pct(r_row.get('purchases'), r_row.get('visits')),2)
+            aov = f"{detected_currency}{fmt_float(safe_division(r_row.get('value'), r_row.get('purchases')),2)}"
             reach = fmt_int(r_row.get('reach'))
             impr = fmt_int(r_row.get('impr'))
             ctr = fmt_pct(r_row.get('ctr'),2)
             log_func(
-                f"{label}\t{roas}\t{spend}\t{purchases}\t{cpa}\t{reach}\t{impr}\t{ctr}"
+                f"{label}\t{roas}\t{spend}\t{purchases}\t{ncpa}\t{cvr}\t{aov}\t{reach}\t{impr}\t{ctr}"
             )
 
 
