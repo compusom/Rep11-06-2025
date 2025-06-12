@@ -179,7 +179,7 @@ def procesar_reporte_rendimiento(input_files, output_dir, output_filename, statu
             except Exception as e_s5: log(f"\n!!! Error Sección 5 (Análisis Ads): {e_s5} !!!\n{traceback.format_exc()}",importante=True)
             
             log("--- Iniciando Sección 6: Top Ads Histórico ---",importante=True);
-            try: _generar_tabla_top_ads_historico(df_daily_agg,active_days_ad,log,detected_currency) 
+            try: _generar_tabla_top_ads_historico(df_daily_agg,active_days_ad,log,detected_currency, top_n=20)
             except Exception as e_s6: log(f"\n!!! Error Sección 6 (Top Ads): {e_s6} !!!\n{traceback.format_exc()}",importante=True)
 
             log("\n\n============================================================");log("===== Resumen del Proceso =====");log("============================================================")
@@ -485,7 +485,7 @@ def procesar_reporte_bitacora(input_files, output_dir, output_filename, status_q
 
             _generar_tabla_embudo_bitacora(df_daily_total_for_bitacora, bitacora_periods_list, log, detected_currency, period_type=bitacora_comparison_type)
 
-            _generar_tabla_bitacora_top_ads(df_daily_agg_full, bitacora_periods_list, active_days_ad, log, detected_currency)
+            _generar_tabla_bitacora_top_ads(df_daily_agg_full, bitacora_periods_list, active_days_ad, log, detected_currency, top_n=20)
             _generar_tabla_bitacora_top_adsets(df_daily_agg_full, bitacora_periods_list, active_days_adset, log, detected_currency)
             _generar_tabla_bitacora_top_campaigns(df_daily_agg_full, bitacora_periods_list, active_days_campaign, log, detected_currency)
 

@@ -20,8 +20,16 @@ def _calcular_dias_activos_totales(df_combined):
 
     active_df = df_combined.copy()
 
-    if 'Entrega' in active_df.columns:
-        active_df = active_df[active_df['Entrega'].eq('Activo')]
+    delivery_col = None
+    for c in ['Entrega', 'entrega', 'Entrega del anuncio']:
+        if c in active_df.columns:
+            delivery_col = c
+            break
+
+    if delivery_col:
+        delivery_lower = active_df[delivery_col].astype(str).str.lower()
+        active_mask = delivery_lower.str.contains('activo') | delivery_lower.str.contains('active')
+        active_df = active_df[active_mask]
 
     if 'impr' in active_df.columns:
         impr_num = pd.to_numeric(active_df['impr'], errors='coerce').fillna(0)
