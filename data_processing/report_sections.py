@@ -980,7 +980,9 @@ def _generar_tabla_top_ads_historico(df_daily_agg, active_days_total_ad_df, log_
         'CVR (%)':fmt_pct(safe_division_pct(row_val.get('purchases'), row_val.get('visits')),2),
         'AOV':f"{detected_currency}{fmt_float(safe_division(row_val.get('value'), row_val.get('purchases')),2)}",
         'NCPA':f"{detected_currency}{fmt_float(safe_division(row_val.get('spend'), row_val.get('purchases')),2)}",
-        'CTR (%)':fmt_pct(row_val.get('ctr'),2),
+        'url_final': lambda x: aggregate_strings(x, separator=' | ', max_len=None),
+        'Públicos In': lambda x: aggregate_strings(x, separator=' | ', max_len=None),
+        'Públicos Ex': lambda x: aggregate_strings(x, separator=' | ', max_len=None)
         })
     if table_data: 
         df_display=pd.DataFrame(table_data)
@@ -1041,8 +1043,13 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
             df_g['ctr'] = safe_division_pct(c, i)
             df_g['ctr_out'] = safe_division_pct(co, i)
             df_g['cpm'] = safe_division(s, i) * 1000
-            df_g['frequency'] = safe_division(i, r)
-            df_g['lpv_rate'] = safe_division_pct(vi, c)
+    metric_labels = ['ROAS', 'Inversión', 'Compras', 'NCPA', 'CVR', 'AOV', 'Alcance', 'Impresiones', 'CTR', 'Frecuencia']
+                    'Frecuencia': fmt_float(r_row.get('frequency'),2),
+                    'Públicos In': _clean_audience_string(r_row.get('Públicos In')),
+                    'Públicos Ex': _clean_audience_string(r_row.get('Públicos Ex')),
+                'Públicos In': metrics.pop('Públicos In', '-'),
+                'Públicos Ex': metrics.pop('Públicos Ex', '-'),
+            column_order = ['Anuncio','Campaña','AdSet','Días Act','Públicos In','Públicos Ex'] + metric_labels
             df_g['purchase_rate'] = safe_division_pct(p, vi)
             base_rv = np.where(pd.Series(rv3 > 0).fillna(False), rv3, i)
             df_g['rv25_pct'] = safe_division_pct(rv25, base_rv)
