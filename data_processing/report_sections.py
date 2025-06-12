@@ -990,12 +990,7 @@ def _generar_tabla_top_ads_historico(df_daily_agg, active_days_total_ad_df, log_
     log_func("  ---")
 
 def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_days_total_ad_df, log_func, detected_currency, top_n=15):
-    """Genera una tabla con los top Ads por alcance ordenados por ROAS.
-
-    Muestra las principales métricas para tres periodos de 7 días (semana actual
-    y dos semanas previas). Se utiliza el periodo más reciente para determinar
-    el ranking de alcance.
-    """
+    """Genera tablas por semana con los Top Ads ordenados por ROAS y alcance."""
     group_cols = ['Campaign', 'AdSet', 'Anuncio']
     if df_daily_agg is None or df_daily_agg.empty or 'date' not in df_daily_agg.columns:
         log_func("\nNo hay datos diarios para Top Ads Bitácora.")
@@ -1070,70 +1065,72 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
 
 
     metric_labels = ['ROAS', 'Inversión', 'Compras', 'NCPA', 'CVR', 'AOV', 'Alcance', 'Impresiones', 'CTR']
-    table_data = []
+    any_table = False
 
-    for _, key_row in ranking_df.iterrows():
-        camp = key_row.get('Campaign', '-')
-        adset = key_row.get('AdSet', '-')
-        ad = key_row.get('Anuncio', '-')
-        url_final = key_row.get('url_final', '-')
-        puja_val = key_row.get('puja')
-        interacciones_val = key_row.get('interacciones')
-        comentarios_val = key_row.get('comentarios')
-        rtime_val = key_row.get('rtime')
-        pub_in = _clean_audience_string(key_row.get('Públicos In', '-'))
-        pub_ex = _clean_audience_string(key_row.get('Públicos Ex', '-'))
-        dias_act = int(key_row.get('Días_Activo_Total', 0))
+    for label in period_labels:
+        df_metrics = period_metrics.get(label)
+        if df_metrics is None or df_metrics.empty:
+            continue
+        table_rows = []
+        for _, key_row in ranking_df.iterrows():
+            camp = key_row.get('Campaign', '-')
+            adset = key_row.get('AdSet', '-')
+            ad = key_row.get('Anuncio', '-')
+            url_final = key_row.get('url_final', '-')
+            puja_val = key_row.get('puja')
+            interacciones_val = key_row.get('interacciones')
+            comentarios_val = key_row.get('comentarios')
+            rtime_val = key_row.get('rtime')
+            pub_in = _clean_audience_string(key_row.get('Públicos In', '-'))
+            pub_ex = _clean_audience_string(key_row.get('Públicos Ex', '-'))
+            dias_act = int(key_row.get('Días_Activo_Total', 0))
 
-        row_data = {
-            'Campaña': camp,
-            'AdSet': adset,
-            'Anuncio': ad,
-            'URL FINAL': url_final,
-            'Puja': f"{detected_currency}{fmt_float(puja_val,2)}" if pd.notna(puja_val) else '-',
-            'Interacciones': fmt_int(interacciones_val),
-            'Comentarios': fmt_int(comentarios_val),
-            'Tiempo RV (s)': f"{fmt_float(rtime_val,1)}s" if pd.notna(rtime_val) else '-',
-            'Públicos Incluidos': pub_in,
-            'Públicos Excluidos': pub_ex,
-            'Días Act': dias_act,
-        }
-
-        for label in period_labels:
-            df_metrics = period_metrics.get(label)
-            if df_metrics is None or df_metrics.empty:
+            sel = df_metrics[
+                (df_metrics['Campaign'] == camp) &
+                (df_metrics['AdSet'] == adset) &
+                (df_metrics['Anuncio'] == ad)
+            ]
+            if sel.empty:
                 metrics = {m: '-' for m in metric_labels}
             else:
-                sel = df_metrics[
-                    (df_metrics['Campaign'] == camp) &
-                    (df_metrics['AdSet'] == adset) &
-                    (df_metrics['Anuncio'] == ad)
-                ]
-                if sel.empty:
-                    metrics = {m: '-' for m in metric_labels}
-                else:
-                    r_row = sel.iloc[0]
-                    metrics = {
-                        'ROAS': f"{fmt_float(r_row.get('roas'),2)}x",
-                        'Inversión': f"{detected_currency}{fmt_float(r_row.get('spend'),2)}",
-                        'Compras': fmt_int(r_row.get('purchases')),
-                        'NCPA': f"{detected_currency}{fmt_float(safe_division(r_row.get('spend'), r_row.get('purchases')),2)}",
-                        'CVR': fmt_pct(safe_division_pct(r_row.get('purchases'), r_row.get('visits')),2),
-                        'AOV': f"{detected_currency}{fmt_float(safe_division(r_row.get('value'), r_row.get('purchases')),2)}",
-                        'Alcance': fmt_int(r_row.get('reach')),
-                        'Impresiones': fmt_int(r_row.get('impr')),
-                        'CTR': fmt_pct(r_row.get('ctr'),2),
-                    }
-            for metric_name in metric_labels:
-                row_data[f"{metric_name} ({label})"] = metrics[metric_name]
+                r_row = sel.iloc[0]
+                metrics = {
+                    'ROAS': f"{fmt_float(r_row.get('roas'),2)}x",
+                    'Inversión': f"{detected_currency}{fmt_float(r_row.get('spend'),2)}",
+                    'Compras': fmt_int(r_row.get('purchases')),
+                    'NCPA': f"{detected_currency}{fmt_float(safe_division(r_row.get('spend'), r_row.get('purchases')),2)}",
+                    'CVR': fmt_pct(safe_division_pct(r_row.get('purchases'), r_row.get('visits')),2),
+                    'AOV': f"{detected_currency}{fmt_float(safe_division(r_row.get('value'), r_row.get('purchases')),2)}",
+                    'Alcance': fmt_int(r_row.get('reach')),
+                    'Impresiones': fmt_int(r_row.get('impr')),
+                    'CTR': fmt_pct(r_row.get('ctr'),2),
+                }
 
-        table_data.append(row_data)
+            row = {
+                'Anuncio': ad,
+                'Campaña': camp,
+                'AdSet': adset,
+                'URL FINAL': url_final,
+                'Puja': f"{detected_currency}{fmt_float(puja_val,2)}" if pd.notna(puja_val) else '-',
+                'Interacciones': fmt_int(interacciones_val),
+                'Comentarios': fmt_int(comentarios_val),
+                'Tiempo RV (s)': f"{fmt_float(rtime_val,1)}s" if pd.notna(rtime_val) else '-',
+                'Públicos Incluidos': pub_in,
+                'Públicos Excluidos': pub_ex,
+                'Días Act': dias_act,
+            }
+            row.update(metrics)
+            table_rows.append(row)
 
-    if table_data:
-        df_display = pd.DataFrame(table_data)
-        num_cols = [c for c in df_display.columns if c not in ['Campaña','AdSet','Anuncio','URL FINAL','Públicos Incluidos','Públicos Excluidos']]
-        _format_dataframe_to_markdown(df_display, f"Top {top_n} Ads Bitácora (Reach Desc, ROAS Desc)", log_func, numeric_cols_for_alignment=num_cols)
-    else:
+        if table_rows:
+            df_display = pd.DataFrame(table_rows)
+            column_order = ['Anuncio','Campaña','AdSet','URL FINAL','Puja','Interacciones','Comentarios','Tiempo RV (s)','Públicos Incluidos','Públicos Excluidos','Días Act'] + metric_labels
+            df_display = df_display[[c for c in column_order if c in df_display.columns]]
+            num_cols = [c for c in df_display.columns if c not in ['Anuncio','Campaña','AdSet','URL FINAL','Públicos Incluidos','Públicos Excluidos']]
+            _format_dataframe_to_markdown(df_display, f"Top {top_n} Ads Bitácora - {label}", log_func, numeric_cols_for_alignment=num_cols)
+            any_table = True
+
+    if not any_table:
         log_func("\nNo hay datos para Top Ads Bitácora.")
 
 
