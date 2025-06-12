@@ -19,7 +19,7 @@ from formatting_utils import (
 )
 from .metric_calculators import _calcular_metricas_agregadas_y_estabilidad, _calculate_stability_pct # Nótese el .
 from config import numeric_internal_cols # Importar desde la raíz del proyecto
-from utils import aggregate_strings # <--- AÑADIR ESTA LÍNEA DE IMPORTACIÓN
+from utils import aggregate_strings
 
 # ============================================================
 # GENERACIÓN DE SECCIONES DEL REPORTE
