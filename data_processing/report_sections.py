@@ -998,42 +998,6 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, log_fun
         log_func("\nNo hay datos para la semana actual. Top Ads Bitácora omitido.")
         return
 
-    log_func(f"\n** Top {top_n} Ads Bitácora (Reach Desc, ROAS Desc)**")
-    top_keys = ranking_df[group_cols]
-
-
-    for _, key_row in top_keys.iterrows():
-        camp = key_row.get('Campaign', '-')
-        adset = key_row.get('AdSet', '-')
-        ad = key_row.get('Anuncio', '-')
-        log_func(f"\nAnuncio: {ad}")
-        log_func(f"Campaña: {camp}")
-        log_func(f"AdSet: {adset}")
-        log_func(header)
-        for label in period_labels:
-            df_metrics = period_metrics.get(label)
-            if df_metrics is None or df_metrics.empty:
-
-                continue
-            sel = df_metrics[
-                (df_metrics['Campaign'] == camp) &
-                (df_metrics['AdSet'] == adset) &
-                (df_metrics['Anuncio'] == ad)
-            ]
-            if sel.empty:
-
-                continue
-            r_row = sel.iloc[0]
-            roas = f"{fmt_float(r_row.get('roas'),2)}x"
-            spend = f"{detected_currency}{fmt_float(r_row.get('spend'),2)}"
-            purchases = fmt_int(r_row.get('purchases'))
-            cpa = f"{detected_currency}{fmt_float(r_row.get('cpa'),2)}"
-            reach = fmt_int(r_row.get('reach'))
-            impr = fmt_int(r_row.get('impr'))
-            ctr = fmt_pct(r_row.get('ctr'),2)
-            cpm = f"{detected_currency}{fmt_float(r_row.get('cpm'),2)}"
-
-
 def _generar_tabla_bitacora_entidad(entity_level, entity_name, df_daily_entity,
                                    bitacora_periods_list, detected_currency, log_func, period_type="Weeks"):
     """Build a period-over-period table for a single entity within the report."""
