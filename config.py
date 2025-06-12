@@ -59,6 +59,9 @@ norm_map = {
     'rv75': [normalize('Reproducciones de video hasta el 75%'), normalize('Video plays at 75%'), normalize('Video Plays at 75%')],
     'rv100': [normalize('Reproducciones de video hasta el 100%'), normalize('Video plays at 100%'), normalize('Video Plays at 100%')],
     'rtime': [normalize('Tiempo promedio de reproducción del video'), normalize('Avg. video watch time'), normalize('Average video play time')],
+    'bid': [normalize('Puja'), normalize('Bid Amount'), normalize('Puja promedio')],
+    'url_final': [normalize('URL del sitio web'), normalize('Website URL')],
+    'thruplays': [normalize('ThruPlays'), normalize('Thru Plays')],
 }
 
 numeric_internal_cols = [
@@ -70,6 +73,7 @@ numeric_internal_cols = [
     'addcart', 'checkout', 'purchases', 
     'value', 'value_avg', 'roas', 'cpa', 'ncpa', 'aov', 'cvr',
     'rv3', 'rv25', 'rv75', 'rv100', 'rtime' # Video
+    ,'bid','thruplays'
 ]
 
 # Símbolos de moneda preferidos (puedes expandir esto)

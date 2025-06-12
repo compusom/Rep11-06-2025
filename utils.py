@@ -21,6 +21,21 @@ def aggregate_strings(series, separator=', ', max_len=70):
         result = result[:max_len-3] + '...'
     return result
 
+def clean_audience_string(aud_str):
+    """Remove numeric codes before ':' from audience strings."""
+    if aud_str is None or (isinstance(aud_str, float) and np.isnan(aud_str)):
+        return ''
+    s = str(aud_str)
+    parts = re.split(r'[;,]', s)
+    cleaned = []
+    for part in parts:
+        part = part.strip()
+        if not part:
+            continue
+        part = re.sub(r'^\d+\s*:\s*', '', part)
+        cleaned.append(part)
+    return ', '.join(cleaned)
+
 def _sanitize_filename(name): # Mantenido como _sanitize si se usa internamente para algo específico
     s = str(name).strip().replace(' ', '_'); s = re.sub(r'[\\/*?:"<>|]', '', s)
     s = normalize(s); s = re.sub(r'[^a-z0-9_.\-]+', '', s); return s[:100]

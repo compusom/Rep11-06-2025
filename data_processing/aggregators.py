@@ -41,9 +41,10 @@ def _agregar_datos_diarios(df_combined, status_queue, selected_adsets=None):
             'spend':'sum','value':'sum','purchases':'sum','clicks':'sum','impr':'sum','reach':'sum',
             'visits':'sum','clicks_out':'sum', 'rv3':'sum','rv25':'sum','rv75':'sum','rv100':'sum',
             'attention':'sum','interest':'sum','deseo':'sum','addcart':'sum','checkout':'sum',
-            'rtime':'mean','freq':'mean','roas':'mean','cpa':'mean',
+            'rtime':'mean','freq':'mean','roas':'mean','cpa':'mean','bid':'mean','thruplays':'sum',
             'Públicos In':lambda x:aggregate_strings(x,separator=' | ',max_len=None),
             'Públicos Ex':lambda x:aggregate_strings(x,separator=' | ',max_len=None),
+            'url_final':lambda x:aggregate_strings(x,separator=' | ',max_len=None),
             'Entrega':lambda x:aggregate_strings(x,separator='|',max_len=50)
         }
         actual_agg_dict={k:v for k,v in agg_dict_base.items() if k in df_filtered.columns}

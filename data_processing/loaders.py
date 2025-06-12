@@ -7,7 +7,7 @@ import sys
 import traceback
 import numpy as np
 from config import norm_map, numeric_internal_cols, CURRENCY_SYMBOLS, DEFAULT_CURRENCY_SYMBOL # Importar de config
-from utils import normalize, create_flexible_regex_pattern, robust_numeric_conversion
+from utils import normalize, create_flexible_regex_pattern, robust_numeric_conversion, clean_audience_string
 from file_io import find_date_column_name, get_dates_from_file
 
 # ============================================================
@@ -191,14 +191,14 @@ def _cargar_y_preparar_datos(input_files, status_queue, selected_campaign):
 
             # MODIFICACIÓN para 'Públicos In' y 'Públicos Ex'
             if 'aud_in' in df_renamed.columns:
-                df_renamed['Públicos In'] = df_renamed['aud_in'].fillna('').astype(str).apply(normalize)
+                df_renamed['Públicos In'] = df_renamed['aud_in'].fillna('').astype(str).apply(clean_audience_string)
             else:
-                df_renamed['Públicos In'] = pd.Series('', index=df_renamed.index, dtype=str).apply(normalize)
+                df_renamed['Públicos In'] = pd.Series('', index=df_renamed.index, dtype=str).apply(clean_audience_string)
 
             if 'aud_ex' in df_renamed.columns:
-                df_renamed['Públicos Ex'] = df_renamed['aud_ex'].fillna('').astype(str).apply(normalize)
+                df_renamed['Públicos Ex'] = df_renamed['aud_ex'].fillna('').astype(str).apply(clean_audience_string)
             else:
-                df_renamed['Públicos Ex'] = pd.Series('', index=df_renamed.index, dtype=str).apply(normalize)
+                df_renamed['Públicos Ex'] = pd.Series('', index=df_renamed.index, dtype=str).apply(clean_audience_string)
 
 
             delivery_status_map={'active':'Activo','inactive':'Apagado','not_delivering':'Sin entrega','rejected':'Rechazado','pending_review':'Pendiente', 'archived': 'Archivado', 'completed': 'Completado', 'limited': 'Limitado', 'not approved': 'No Aprobado'}

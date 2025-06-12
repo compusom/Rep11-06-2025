@@ -978,6 +978,7 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
         'spend': 'sum', 'value': 'sum', 'purchases': 'sum', 'clicks': 'sum',
         'clicks_out': 'sum', 'impr': 'sum', 'reach': 'sum', 'visits': 'sum',
         'rv3': 'sum', 'rv25': 'sum', 'rv75': 'sum', 'rv100': 'sum', 'rtime': 'mean',
+        'bid': 'mean', 'thruplays': 'sum', 'url_final': lambda x: aggregate_strings(x, separator=' | ', max_len=None),
         'Públicos In': lambda x: aggregate_strings(x, separator=' | ', max_len=None),
         'Públicos Ex': lambda x: aggregate_strings(x, separator=' | ', max_len=None)
     }
@@ -1035,7 +1036,8 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
 
 
     log_func(f"\n** Top {top_n} Ads Bitácora (Reach Desc, ROAS Desc)**")
-    top_keys = ranking_df[group_cols + ['Públicos In', 'Públicos Ex', 'Días_Activo_Total']]
+    extra_cols = [c for c in ['Públicos In','Públicos Ex','url_final','bid','thruplays','rv25','rv75','rv100','rtime','Días_Activo_Total'] if c in ranking_df.columns]
+    top_keys = ranking_df[group_cols + extra_cols]
 
     header = (
         "Período\tROAS\tInversión\tCompras\tNCPA\tCVR\tAOV\tAlcance\tImpresiones\tCTR"
@@ -1047,12 +1049,30 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
         ad = key_row.get('Anuncio', '-')
         pub_in = key_row.get('Públicos In', '-')
         pub_ex = key_row.get('Públicos Ex', '-')
+        url_final = key_row.get('url_final', '-')
+        bid_val = key_row.get('bid', np.nan)
+        thruplays_val = key_row.get('thruplays', np.nan)
+        rv25_val = key_row.get('rv25', np.nan)
+        rv75_val = key_row.get('rv75', np.nan)
+        rv100_val = key_row.get('rv100', np.nan)
+        rtime_val = key_row.get('rtime', np.nan)
         dias_act = int(key_row.get('Días_Activo_Total', 0))
         log_func(f"\nAnuncio: {ad}")
         log_func(f"Campaña: {camp}")
         log_func(f"AdSet: {adset}")
         log_func(f"Públicos Incluidos: {pub_in}")
         log_func(f"Públicos Excluidos: {pub_ex}")
+        log_func(f"URL FINAL: {url_final}")
+        if pd.notna(bid_val):
+            log_func(f"Puja: {detected_currency}{fmt_float(bid_val,2)}")
+        if pd.notna(thruplays_val):
+            log_func(f"ThruPlays: {fmt_int(thruplays_val)}")
+        has_video = any(pd.to_numeric(v, errors='coerce') > 0 for v in [rv25_val, rv75_val, rv100_val, rtime_val])
+        if has_video:
+            log_func(f"Reproducciones de video 25%: {fmt_int(rv25_val)}")
+            log_func(f"Reproducciones de video 75%: {fmt_int(rv75_val)}")
+            log_func(f"Reproducciones de video 100%: {fmt_int(rv100_val)}")
+            log_func(f"Tiempo promedio de reproducción del video: {fmt_float(rtime_val,1)}s")
         log_func(f"Días Activos: {dias_act}")
         log_func(header)
         for label in period_labels:
