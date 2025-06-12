@@ -1011,6 +1011,8 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
         'spend': 'sum', 'value': 'sum', 'purchases': 'sum', 'clicks': 'sum',
         'clicks_out': 'sum', 'impr': 'sum', 'reach': 'sum', 'visits': 'sum',
         'rv3': 'sum', 'rv25': 'sum', 'rv75': 'sum', 'rv100': 'sum', 'rtime': 'mean',
+        'puja': 'mean', 'interacciones': 'sum', 'comentarios': 'sum',
+        'url_final': lambda x: aggregate_strings(x, separator=' | ', max_len=None),
         'Públicos In': lambda x: aggregate_strings(x, separator=' | ', max_len=None),
         'Públicos Ex': lambda x: aggregate_strings(x, separator=' | ', max_len=None)
     }
@@ -1078,12 +1080,39 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
         camp = key_row.get('Campaign', '-')
         adset = key_row.get('AdSet', '-')
         ad = key_row.get('Anuncio', '-')
+        latest_row = ranking_df[
+            (ranking_df['Campaign'] == camp) &
+            (ranking_df['AdSet'] == adset) &
+            (ranking_df['Anuncio'] == ad)
+        ]
+        if not latest_row.empty:
+            latest_row = latest_row.iloc[0]
+            url_final = latest_row.get('url_final', '-')
+            puja_val = latest_row.get('puja')
+            interacciones_val = latest_row.get('interacciones')
+            comentarios_val = latest_row.get('comentarios')
+            rtime_val = latest_row.get('rtime')
+        else:
+            url_final = '-'
+            puja_val = np.nan
+            interacciones_val = np.nan
+            comentarios_val = np.nan
+            rtime_val = np.nan
         pub_in = _clean_audience_string(key_row.get('Públicos In', '-'))
         pub_ex = _clean_audience_string(key_row.get('Públicos Ex', '-'))
         dias_act = int(key_row.get('Días_Activo_Total', 0))
         log_func(f"\nAnuncio: {ad}")
         log_func(f"Campaña: {camp}")
         log_func(f"AdSet: {adset}")
+        log_func(f"URL: {url_final}")
+        log_func(
+            f"Puja: {detected_currency}{fmt_float(puja_val,2)}" if pd.notna(puja_val) else "Puja: -"
+        )
+        log_func(f"Interacciones: {fmt_int(interacciones_val)}")
+        log_func(f"Comentarios: {fmt_int(comentarios_val)}")
+        log_func(
+            f"Tiempo promedio de reproducción del video: {fmt_float(rtime_val,1)}s"
+        )
         log_func(f"Públicos Incluidos: {pub_in}")
         log_func(f"Públicos Excluidos: {pub_ex}")
         log_func(f"Días Activos: {dias_act}")
