@@ -992,58 +992,43 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, log_fun
         log_func("\nNo hay datos para la semana actual. Top Ads Bitácora omitido.")
         return
 
+    log_func(f"\n** Top {top_n} Ads Bitácora (Reach Desc, ROAS Desc)**")
     top_keys = ranking_df[group_cols]
-    rows = []
-    metric_order = [
-        ('reach', 'Alcance'), ('roas', 'ROAS'), ('spend', 'Inversion'),
-        ('purchases', 'Compras'), ('cpa', 'CPA'), ('cpm', 'CPM'),
-        ('ctr', 'CTR'), ('ctr_out', 'CTR Saliente'), ('impr', 'Impresiones'),
-        ('frequency', 'Frecuencia')
-    ]
+    header = "Período|ROAS|Inversión|Compras|CPA|Alcance|Impresiones|CTR|CPM|%RV75|Tiempo(s)"
 
     for _, key_row in top_keys.iterrows():
-        base_info = {
-            'Campaña': key_row.get('Campaign', '-'),
-            'AdSet': key_row.get('AdSet', '-'),
-            'Anuncio': key_row.get('Anuncio', '-')
-        }
-        row = base_info.copy()
+        camp = key_row.get('Campaign', '-')
+        adset = key_row.get('AdSet', '-')
+        ad = key_row.get('Anuncio', '-')
+        log_func(f"\nAnuncio: {ad}")
+        log_func(f"Campaña: {camp}")
+        log_func(f"AdSet: {adset}")
+        log_func(header)
         for label in period_labels:
             df_metrics = period_metrics.get(label)
             if df_metrics is None or df_metrics.empty:
-                for m_key, m_disp in metric_order:
-                    row[f"{m_disp} {label}"] = '-'
+                log_func(f"{label}|-|-|-|-|-|-|-|-|-")
                 continue
             sel = df_metrics[
-                (df_metrics['Campaign'] == base_info['Campaña']) &
-                (df_metrics['AdSet'] == base_info['AdSet']) &
-                (df_metrics['Anuncio'] == base_info['Anuncio'])
+                (df_metrics['Campaign'] == camp) &
+                (df_metrics['AdSet'] == adset) &
+                (df_metrics['Anuncio'] == ad)
             ]
             if sel.empty:
-                for m_key, m_disp in metric_order:
-                    row[f"{m_disp} {label}"] = '-'
+                log_func(f"{label}|-|-|-|-|-|-|-|-|-")
                 continue
             r_row = sel.iloc[0]
-            row[f"Alcance {label}"] = fmt_int(r_row.get('reach'))
-            row[f"ROAS {label}"] = f"{fmt_float(r_row.get('roas'), 2)}x"
-            row[f"Inversion {label}"] = f"{detected_currency}{fmt_float(r_row.get('spend'),2)}"
-            row[f"Compras {label}"] = fmt_int(r_row.get('purchases'))
-            row[f"CPA {label}"] = f"{detected_currency}{fmt_float(r_row.get('cpa'),2)}"
-            row[f"CPM {label}"] = f"{detected_currency}{fmt_float(r_row.get('cpm'),2)}"
-            row[f"CTR {label}"] = fmt_pct(r_row.get('ctr'),2)
-            row[f"CTR Saliente {label}"] = fmt_pct(r_row.get('ctr_out'),2)
-            row[f"Impresiones {label}"] = fmt_int(r_row.get('impr'))
-            row[f"Frecuencia {label}"] = fmt_float(r_row.get('frequency'),2)
-        rows.append(row)
-
-    if rows:
-        df_disp = pd.DataFrame(rows)
-        numeric_cols = [c for c in df_disp.columns if c not in ['Campaña','AdSet','Anuncio']]
-        _format_dataframe_to_markdown(df_disp, f"** Top {top_n} Ads Bitácora (Reach Desc, ROAS Desc)**", log_func,
-                                     currency_cols=detected_currency,
-                                     numeric_cols_for_alignment=numeric_cols)
-    else:
-        log_func("\nNo hay datos para Top Ads Bitácora.")
+            roas = f"{fmt_float(r_row.get('roas'),2)}x"
+            spend = f"{detected_currency}{fmt_float(r_row.get('spend'),2)}"
+            purchases = fmt_int(r_row.get('purchases'))
+            cpa = f"{detected_currency}{fmt_float(r_row.get('cpa'),2)}"
+            reach = fmt_int(r_row.get('reach'))
+            impr = fmt_int(r_row.get('impr'))
+            ctr = fmt_pct(r_row.get('ctr'),2)
+            cpm = f"{detected_currency}{fmt_float(r_row.get('cpm'),2)}"
+            rv75 = fmt_pct(r_row.get('rv75_pct'),1)
+            rtime = f"{fmt_float(r_row.get('rtime'),1)}s"
+            log_func(f"{label}|{roas}|{spend}|{purchases}|{cpa}|{reach}|{impr}|{ctr}|{cpm}|{rv75}|{rtime}")
 
 def _generar_tabla_bitacora_entidad(entity_level, entity_name, df_daily_entity,
                                    bitacora_periods_list, detected_currency, log_func, period_type="Weeks"):
