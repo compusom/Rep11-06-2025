@@ -44,6 +44,9 @@ def test_top_ads_audience_lines(capsys):
     logs = []
     _generar_tabla_bitacora_top_ads(df, periods, active, logs.append, '$', top_n=1)
     output = "\n".join(logs)
+    assert 'Top 1 Ads Bitácora - Semana actual' in output
+    assert 'No hay datos para 1ª semana anterior' in output
+    assert 'No hay datos para 2ª semana anterior' in output
     assert 'Públicos Incluidos' in output
     assert 'Públicos Excluidos' in output
     assert 'Inc1' in output and 'Inc2' in output
