@@ -1,6 +1,7 @@
 import pandas as pd
 from datetime import datetime
 from data_processing.report_sections import _generar_tabla_bitacora_top_ads
+from data_processing.report_sections import _clean_audience_string
 
 
 def test_top_ads_audience_lines(capsys):
@@ -22,6 +23,10 @@ def test_top_ads_audience_lines(capsys):
         'rv75': [0, 1],
         'rv100': [0, 1],
         'rtime': [4, 5],
+        'url_final': ['https://a.com','https://a.com'],
+        'puja': [1.2, 1.3],
+        'interacciones': [3,4],
+        'comentarios': [1,1],
         'Públicos In': ['Inc1', 'Inc2'],
         'Públicos Ex': ['Exc1', 'Exc2'],
     })
@@ -43,3 +48,11 @@ def test_top_ads_audience_lines(capsys):
     assert 'Inc1' in output and 'Inc2' in output
     assert 'Públicos Excluidos:' in output
     assert 'Exc1' in output and 'Exc2' in output
+    assert 'URL:' in output
+    assert 'Puja:' in output
+    assert 'Interacciones:' in output
+    assert 'Comentarios:' in output
+    assert 'Tiempo promedio de reproducción del video:' in output
+
+def test_clean_audience_string():
+    assert _clean_audience_string('123:Aud1 | 456:Aud2') == 'Aud1 | Aud2'
