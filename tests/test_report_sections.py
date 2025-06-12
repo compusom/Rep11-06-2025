@@ -44,18 +44,18 @@ def test_top_ads_audience_lines(capsys):
     logs = []
     _generar_tabla_bitacora_top_ads(df, periods, active, logs.append, '$', top_n=1)
     output = "\n".join(logs)
-    assert 'Públicos Incluidos:' in output
+    assert 'Top 1 Ads Bitácora - Semana actual' in output
+    assert 'No hay datos para 1ª semana anterior' in output
+    assert 'No hay datos para 2ª semana anterior' in output
+    assert 'Públicos Incluidos' in output
+    assert 'Públicos Excluidos' in output
     assert 'Inc1' in output and 'Inc2' in output
-    assert 'Públicos Excluidos:' in output
     assert 'Exc1' in output and 'Exc2' in output
-    assert 'URL:' in output
-    assert 'Puja:' in output
-    assert 'Interacciones:' in output
-    assert 'Comentarios:' in output
-    assert 'Tiempo promedio de reproducción del video:' in output
-    assert 'Anuncio: Ad1;' in output
-    assert 'Campaña: Camp;' in output
-    assert 'Días Activos: 2;' in output
+    assert 'URL FINAL' in output
+    assert 'Puja' in output
+    assert 'Interacciones' in output
+    assert 'Comentarios' in output
+    assert 'Tiempo RV (s)' in output
 
 def test_clean_audience_string():
     assert _clean_audience_string('123:Aud1 | 456:Aud2') == 'Aud1 | Aud2'
