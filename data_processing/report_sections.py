@@ -980,7 +980,10 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
 
     period_metrics = {}
     for start_dt, end_dt, label in periods_to_use:
-        df_p = df_daily_agg[(df_daily_agg['date'] >= start_dt) & (df_daily_agg['date'] <= end_dt)].copy()
+        df_p = df_daily_agg[
+            (df_daily_agg['date'].dt.date >= start_dt.date()) &
+            (df_daily_agg['date'].dt.date <= end_dt.date())
+        ].copy()
         if df_p.empty:
             period_metrics[label] = pd.DataFrame(columns=group_cols)
             continue
