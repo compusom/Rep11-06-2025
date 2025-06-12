@@ -3,6 +3,7 @@ from utils import normalize # Suponiendo que normalize está en utils.py
 
 # ============================================================
 # CONFIGURACIÓN ESPECÍFICA DEL REPORTE
+# Consulta docs/column_reference.md para ver todas las columnas y sus tipos
 # ============================================================
 norm_map = {
     'campaign': [normalize('Nombre de la campaña'), normalize('Campaign name')],
