@@ -10,11 +10,26 @@ from formatting_utils import safe_division, safe_division_pct # De formatting_ut
 def _calcular_dias_activos_totales(df_combined):
     """Return number of active days per campaign, ad set and ad."""
     results={'Campaign':pd.DataFrame(columns=['Campaign','Días_Activo_Total']),'AdSet':pd.DataFrame(columns=['Campaign','AdSet','Días_Activo_Total']),'Anuncio':pd.DataFrame(columns=['Campaign','AdSet','Anuncio','Días_Activo_Total'])}
-    if df_combined is None or df_combined.empty: print("Adv: DF vacío (días activos)."); return results
-    if 'Entrega' not in df_combined.columns: print("Adv: Col 'Entrega' no encontrada (días activos)."); return results
-    active_df=df_combined[df_combined['Entrega'].eq('Activo')].copy()
-    if active_df.empty: print("Adv: No hay filas con estado 'Activo'."); return results
-    if 'date' not in active_df.columns or not pd.api.types.is_datetime64_any_dtype(active_df['date']): print("Adv: Col 'date' inválida."); return results
+    if df_combined is None or df_combined.empty:
+        print("Adv: DF vacío (días activos).")
+        return results
+
+    if 'date' not in df_combined.columns or not pd.api.types.is_datetime64_any_dtype(df_combined['date']):
+        print("Adv: Col 'date' inválida.")
+        return results
+
+    active_df = df_combined.copy()
+
+    if 'Entrega' in active_df.columns:
+        active_df = active_df[active_df['Entrega'].eq('Activo')]
+
+    if 'impr' in active_df.columns:
+        impr_num = pd.to_numeric(active_df['impr'], errors='coerce').fillna(0)
+        active_df = active_df[impr_num > 0]
+
+    if active_df.empty:
+        print("Adv: No hay filas consideradas activas para conteo de días.")
+        return results
 
     if 'Campaign' in active_df.columns: active_df['Campaign'] = active_df['Campaign'].astype(str)
     if 'AdSet' in active_df.columns: active_df['AdSet'] = active_df['AdSet'].astype(str)
