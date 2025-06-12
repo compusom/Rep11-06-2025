@@ -1011,6 +1011,8 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
         'spend': 'sum', 'value': 'sum', 'purchases': 'sum', 'clicks': 'sum',
         'clicks_out': 'sum', 'impr': 'sum', 'reach': 'sum', 'visits': 'sum',
         'rv3': 'sum', 'rv25': 'sum', 'rv75': 'sum', 'rv100': 'sum', 'rtime': 'mean',
+        'thruplays': 'sum', 'puja': 'mean', 'interacciones': 'sum', 'comentarios': 'sum',
+        'url_final': lambda x: aggregate_strings(x, separator=' | ', max_len=None),
         'Públicos In': lambda x: aggregate_strings(x, separator=' | ', max_len=None),
         'Públicos Ex': lambda x: aggregate_strings(x, separator=' | ', max_len=None)
     }
@@ -1068,7 +1070,8 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
 
 
     log_func(f"\n** Top {top_n} Ads Bitácora (Reach Desc, ROAS Desc)**")
-    top_keys = ranking_df[group_cols + ['Públicos In', 'Públicos Ex', 'Días_Activo_Total']]
+    extra_cols = [c for c in ['url_final','puja','interacciones','comentarios','rtime'] if c in ranking_df.columns]
+    top_keys = ranking_df[group_cols + ['Públicos In', 'Públicos Ex'] + extra_cols + ['Días_Activo_Total']]
 
     header = (
         "Período\tROAS\tInversión\tCompras\tNCPA\tCVR\tAOV\tAlcance\tImpresiones\tCTR"
@@ -1080,12 +1083,27 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
         ad = key_row.get('Anuncio', '-')
         pub_in = _clean_audience_string(key_row.get('Públicos In', '-'))
         pub_ex = _clean_audience_string(key_row.get('Públicos Ex', '-'))
+        url = key_row.get('url_final', '-')
+        puja_val = key_row.get('puja', np.nan)
+        interac = key_row.get('interacciones', np.nan)
+        coments = key_row.get('comentarios', np.nan)
+        rtime_val = key_row.get('rtime', np.nan)
         dias_act = int(key_row.get('Días_Activo_Total', 0))
         log_func(f"\nAnuncio: {ad}")
         log_func(f"Campaña: {camp}")
         log_func(f"AdSet: {adset}")
         log_func(f"Públicos Incluidos: {pub_in}")
         log_func(f"Públicos Excluidos: {pub_ex}")
+        if 'url_final' in key_row.index:
+            log_func(f"URL: {url}")
+        if 'puja' in key_row.index:
+            log_func(f"Puja: {detected_currency}{fmt_float(puja_val,2)}" if pd.notna(puja_val) else "Puja: -")
+        if 'interacciones' in key_row.index:
+            log_func(f"Interacciones: {fmt_int(interac)}")
+        if 'comentarios' in key_row.index:
+            log_func(f"Comentarios: {fmt_int(coments)}")
+        if 'rtime' in key_row.index:
+            log_func(f"Tiempo promedio de reproducción del video: {fmt_float(rtime_val,1)}s" if pd.notna(rtime_val) else "Tiempo promedio de reproducción del video: -")
         log_func(f"Días Activos: {dias_act}")
         log_func(header)
         for label in period_labels:

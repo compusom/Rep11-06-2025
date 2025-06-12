@@ -42,8 +42,8 @@ This document lists the columns present in the imported Excel reports and how th
 | Clics en el enlace | clicks | numeric | mapped via `norm_map` |
 | Información de pago agregada | checkout | numeric | mapped via `norm_map` (as part of checkout metrics) |
 | Interacción con la página | - | numeric | not used |
-| Comentarios de publicaciones | - | numeric | not used |
-| Interacciones con la publicación | - | numeric | not used |
+| Comentarios de publicaciones | comentarios | numeric | mapped via `norm_map` |
+| Interacciones con la publicación | interacciones | numeric | mapped via `norm_map` |
 | Reacciones a publicaciones | - | numeric | not used |
 | Veces que se guardaron las publicaciones | - | numeric | not used |
 | Veces que se compartieron las publicaciones | - | numeric | not used |
