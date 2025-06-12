@@ -51,6 +51,10 @@ After installing dependencies you can run the unit tests with:
 pytest
 ```
 
+## Report Format
+
+Generated reports are plain text files where tables use a semicolon (`;`) as the delimiter for each cell. This ensures data can be imported directly into spreadsheet tools. See `docs/report_format.md` for details.
+
 ## Contributing
 
 Pull requests that introduce useful scripts, improve documentation, or help define the project structure are welcome. Feel free to open issues to discuss ideas or report problems.

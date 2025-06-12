@@ -60,10 +60,25 @@ norm_map = {
     'rv100': [normalize('Reproducciones de video hasta el 100%'), normalize('Video plays at 100%'), normalize('Video Plays at 100%')],
     'rtime': [normalize('Tiempo promedio de reproducción del video'), normalize('Avg. video watch time'), normalize('Average video play time')],
     'thruplays': [normalize('ThruPlays')],
-    'puja': [normalize('Puja')],
-    'url_final': [normalize('URL del sitio web'), normalize('Website URL')],
-    'interacciones': [normalize('Interacciones con la publicación'), normalize('Post engagement')],
-    'comentarios': [normalize('Comentarios de publicaciones'), normalize('Post comments')],
+    'puja': [
+        normalize('Puja'),
+        normalize('Bid'),  # sinónimo en inglés
+    ],
+    'url_final': [
+        normalize('URL del sitio web'),
+        normalize('Website URL'),
+        normalize('URL'),  # variante abreviada
+    ],
+    'interacciones': [
+        normalize('Interacciones con la publicación'),
+        normalize('Post engagement'),
+        normalize('Interacciones'),  # nombre corto
+    ],
+    'comentarios': [
+        normalize('Comentarios de publicaciones'),
+        normalize('Post comments'),
+        normalize('Comentarios'),  # nombre corto
+    ],
 }
 
 numeric_internal_cols = [

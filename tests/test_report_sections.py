@@ -4,7 +4,7 @@ from data_processing.report_sections import _generar_tabla_bitacora_top_ads
 from data_processing.report_sections import _clean_audience_string
 
 
-def test_top_ads_audience_lines(capsys):
+def test_top_ads_horizontal_table(capsys):
     df = pd.DataFrame({
         'date': pd.to_datetime(['2024-06-01','2024-06-02']),
         'Campaign': ['Camp','Camp'],
@@ -44,15 +44,14 @@ def test_top_ads_audience_lines(capsys):
     logs = []
     _generar_tabla_bitacora_top_ads(df, periods, active, logs.append, '$', top_n=1)
     output = "\n".join(logs)
-    assert 'Públicos Incluidos:' in output
-    assert 'Inc1' in output and 'Inc2' in output
-    assert 'Públicos Excluidos:' in output
-    assert 'Exc1' in output and 'Exc2' in output
-    assert 'URL:' in output
-    assert 'Puja:' in output
-    assert 'Interacciones:' in output
-    assert 'Comentarios:' in output
-    assert 'Tiempo promedio de reproducción del video:' in output
+    lines = [ln for ln in output.strip().splitlines() if ln]
+    header = next((ln for ln in lines if ln.startswith('Anuncio;')), None)
+    row = next((ln for ln in lines if ln.startswith('Ad1;')), None)
+    assert header is not None and row is not None
+    assert header.startswith('Anuncio;Campaña;AdSet')
+    assert 'URL' in header
+    assert row.startswith('Ad1;Camp;Set')
+    assert 'https://ex.com' in row
 
 def test_clean_audience_string():
     assert _clean_audience_string('123:Aud1 | 456:Aud2') == 'Aud1 | Aud2'
