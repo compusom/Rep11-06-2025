@@ -219,3 +219,6 @@ def _format_dataframe_to_markdown(df, title, log_func, float_cols_fmt={}, int_co
             align = ">" if (is_formatted_numeric or is_hinted_num or is_stab or is_pct_col) and not is_id else "<"
             vals.append(f"{val:{align}{w}}")
         log_func("| "+" | ".join(vals)+" |")
+
+    # Add trailing blank line after table for easier parsing in post-processing
+    log_func("")
