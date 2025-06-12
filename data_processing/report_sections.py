@@ -1073,7 +1073,7 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
     top_keys = ranking_df[group_cols + ['Públicos In', 'Públicos Ex', 'Días_Activo_Total']]
 
     header = (
-        "Período\tROAS\tInversión\tCompras\tNCPA\tCVR\tAOV\tAlcance\tImpresiones\tCTR"
+        "Período;ROAS;Inversión;Compras;NCPA;CVR;AOV;Alcance;Impresiones;CTR"
     )
 
     for _, key_row in top_keys.iterrows():
@@ -1120,7 +1120,7 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
         for label in period_labels:
             df_metrics = period_metrics.get(label)
             if df_metrics is None or df_metrics.empty:
-                log_func(f"{label}\t-\t-\t-\t-\t-\t-\t-\t-\t-")
+                log_func(f"{label};-;-;-;-;-;-;-;-;-")
                 continue
             sel = df_metrics[
                 (df_metrics['Campaign'] == camp) &
@@ -1128,7 +1128,7 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
                 (df_metrics['Anuncio'] == ad)
             ]
             if sel.empty:
-                log_func(f"{label}\t-\t-\t-\t-\t-\t-\t-\t-\t-")
+                log_func(f"{label};-;-;-;-;-;-;-;-;-")
                 continue
             r_row = sel.iloc[0]
             roas = f"{fmt_float(r_row.get('roas'),2)}x"
@@ -1141,7 +1141,7 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
             impr = fmt_int(r_row.get('impr'))
             ctr = fmt_pct(r_row.get('ctr'),2)
             log_func(
-                f"{label}\t{roas}\t{spend}\t{purchases}\t{ncpa}\t{cvr}\t{aov}\t{reach}\t{impr}\t{ctr}"
+                f"{label};{roas};{spend};{purchases};{ncpa};{cvr};{aov};{reach};{impr};{ctr}"
             )
 
 
