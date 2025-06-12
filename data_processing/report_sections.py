@@ -990,7 +990,7 @@ def _generar_tabla_top_ads_historico(df_daily_agg, active_days_total_ad_df, log_
     log_func("  ---")
 
 def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_days_total_ad_df, log_func, detected_currency, top_n=15):
-    """Genera tablas por semana con los Top Ads ordenados por ROAS y alcance."""
+    """Genera tablas por semana con los Top Ads ordenados por ROAS e impresiones."""
     group_cols = ['Campaign', 'AdSet', 'Anuncio']
     if df_daily_agg is None or df_daily_agg.empty or 'date' not in df_daily_agg.columns:
         log_func("\nNo hay datos diarios para Top Ads Bitácora.")
@@ -1052,13 +1052,19 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
 
     if not period_metrics[period_labels[0]].empty:
         ranking_df = period_metrics[period_labels[0]].copy()
-        ranking_df['rank_score'] = ranking_df['roas'] * ranking_df['reach']
         if active_days_total_ad_df is not None and not active_days_total_ad_df.empty:
-            merge_cols=[c for c in group_cols if c in active_days_total_ad_df.columns]
+            merge_cols = [c for c in group_cols if c in active_days_total_ad_df.columns]
             if merge_cols:
-                ranking_df=pd.merge(ranking_df, active_days_total_ad_df[merge_cols+['Días_Activo_Total']], on=merge_cols, how='left')
-        ranking_df = ranking_df.sort_values('rank_score', ascending=False).head(top_n)
-        ranking_df['Días_Activo_Total']=ranking_df.get('Días_Activo_Total',0).fillna(0).astype(int)
+                ranking_df = pd.merge(
+                    ranking_df,
+                    active_days_total_ad_df[merge_cols + ['Días_Activo_Total']],
+                    on=merge_cols,
+                    how='left',
+                )
+        ranking_df['Días_Activo_Total'] = ranking_df.get('Días_Activo_Total', 0).fillna(0).astype(int)
+        ranking_df['roas'] = pd.to_numeric(ranking_df.get('roas'), errors='coerce').fillna(0)
+        ranking_df['impr'] = pd.to_numeric(ranking_df.get('impr'), errors='coerce').fillna(0)
+        ranking_df = ranking_df.sort_values(['roas', 'impr'], ascending=[False, False]).head(top_n)
     else:
         log_func("\nNo hay datos para la semana actual. Top Ads Bitácora omitido.")
         return
@@ -1120,7 +1126,7 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
         log_func("\nNo hay datos para Top Ads Bitácora.")
 
     log_func("\n  **Detalle Top Ads Bitácora:**")
-    log_func("  * Tabla semanal con los anuncios con mayor ROAS y alcance.")
+    log_func("  * Tabla semanal con los anuncios con mayor ROAS y mayor número de impresiones.")
     log_func("  * Las columnas están separadas por ';' para facilitar la importación en hojas de cálculo.")
     log_func("  ---")
 

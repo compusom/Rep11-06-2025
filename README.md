@@ -51,6 +51,11 @@ After installing dependencies you can run the unit tests with:
 pytest
 ```
 
+When generating a monthly bitácora report through the GUI you can now choose
+how many complete months to compare (between 2 and the number of detected
+months). Use the spinbox in the Bitácora configuration section to select the
+desired number of months.
+
 ## Report Format
 
 Generated reports are plain text files where tables use a semicolon (`;`) as the delimiter for each cell. This ensures data can be imported directly into spreadsheet tools. See `docs/report_format.md` for details.
