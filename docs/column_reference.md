@@ -47,11 +47,11 @@ This document lists the columns present in the imported Excel reports and how th
 | Reacciones a publicaciones | - | numeric | not used |
 | Veces que se guardaron las publicaciones | - | numeric | not used |
 | Veces que se compartieron las publicaciones | - | numeric | not used |
-| ThruPlays | - | numeric | not used |
+| ThruPlays | thruplays | numeric | mapped via `norm_map` |
 | CTR único (todos) | ctr_unico_todos | numeric | mapped via `norm_map` |
-| Puja | - | string | not used |
+| Puja | puja | numeric | mapped via `norm_map` |
 | Tipo de puja | - | string | not used |
-| URL del sitio web | - | string | not used |
+| URL del sitio web | url_final | string | mapped via `norm_map` |
 | CTR (porcentaje de clics en el enlace) | - | numeric | not used |
 | Divisa | - | string | not used; symbol extracted from `Importe gastado` |
 | Interes | interest | numeric | mapped via `norm_map` |

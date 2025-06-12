@@ -21,6 +21,11 @@ from .metric_calculators import _calcular_metricas_agregadas_y_estabilidad, _cal
 from config import numeric_internal_cols # Importar desde la raíz del proyecto
 from utils import aggregate_strings
 
+def _clean_audience_string(aud_str):
+    parts = [p.strip() for p in str(aud_str).split('|')]
+    cleaned = [re.sub(r'^\s*\d+\s*:\s*', '', p) for p in parts]
+    return ' | '.join(cleaned)
+
 
 # ============================================================
 # GENERACIÓN DE SECCIONES DEL REPORTE
@@ -799,8 +804,8 @@ def _generar_analisis_ads(df_combined, df_daily_agg, active_days_total_ad_df, lo
         'Campaña':r_row.get('Campaign','-'),
         'AdSet':r_row.get('AdSet','-'),
         'Nombre ADs':r_row.get('Anuncio','-'),
-        'Públicos Incluidos':str(r_row.get('Públicos In_global','-')),
-        'Públicos Excluidos':str(r_row.get('Públicos Ex_global','-')),
+        'Públicos Incluidos':_clean_audience_string(r_row.get('Públicos In_global','-')),
+        'Públicos Excluidos':_clean_audience_string(r_row.get('Públicos Ex_global','-')),
         'dias':fmt_int(r_row.get('Días_Activo_Total', 0)),
         'Estado':r_row.get('Estado_Ult_Dia','-'),
         'Alcance':fmt_int(r_row.get('reach_global')),
@@ -892,7 +897,12 @@ def _generar_tabla_top_ads_historico(df_daily_agg, active_days_total_ad_df, log_
         if col in df_daily_agg_copy.columns:
             df_daily_agg_copy[col] = df_daily_agg_copy[col].astype(str)
 
-    agg_dict={'spend':'sum','value':'sum','purchases':'sum','clicks':'sum','visits':'sum','impr':'sum','reach':'sum','rtime':'mean', 'rv3':'sum'}
+    agg_dict={
+        'spend':'sum','value':'sum','purchases':'sum','clicks':'sum','visits':'sum',
+        'impr':'sum','reach':'sum','rtime':'mean','rv3':'sum',
+        'rv25':'sum','rv75':'sum','rv100':'sum','thruplays':'sum','puja':'mean',
+        'url_final':lambda x: aggregate_strings(x, separator=' | ', max_len=None)
+    }
     agg_dict_available={k:v for k,v in agg_dict.items() if k in df_daily_agg_copy.columns} 
     if not agg_dict_available or 'spend' not in agg_dict_available or 'impr' not in agg_dict_available: 
         log_func("   No hay métricas suficientes (falta spend o impr) para agregar para Top Ads."); return
@@ -901,7 +911,17 @@ def _generar_tabla_top_ads_historico(df_daily_agg, active_days_total_ad_df, log_
 
     if all(c_col in ads_global for c_col in ['value','spend']): ads_global['roas']=safe_division(ads_global['value'],ads_global['spend'])
     if all(c_col in ads_global for c_col in ['clicks','impr']): ads_global['ctr']=safe_division_pct(ads_global['clicks'],ads_global['impr'])
-    if all(c_col in ads_global for c_col in ['impr','reach']): ads_global['frequency']=safe_division(ads_global['impr'],ads_global['reach'])
+    if all(c_col in ads_global for c_col in ['impr','reach']):
+        ads_global['frequency']=safe_division(ads_global['impr'],ads_global['reach'])
+    base_rv_col = 'rv3' if 'rv3' in ads_global.columns and ads_global['rv3'].sum() > 0 else 'impr'
+    if base_rv_col in ads_global.columns:
+        base_sum = ads_global[base_rv_col]
+        if 'rv25' in ads_global.columns:
+            ads_global['rv25_pct'] = safe_division_pct(ads_global['rv25'], base_sum)
+        if 'rv75' in ads_global.columns:
+            ads_global['rv75_pct'] = safe_division_pct(ads_global['rv75'], base_sum)
+        if 'rv100' in ads_global.columns:
+            ads_global['rv100_pct'] = safe_division_pct(ads_global['rv100'], base_sum)
     if active_days_total_ad_df is not None and not active_days_total_ad_df.empty and 'Días_Activo_Total' in active_days_total_ad_df.columns:
         merge_cols=[c_col for c_col in group_cols_ad if c_col in active_days_total_ad_df.columns] 
         if merge_cols:
@@ -930,12 +950,26 @@ def _generar_tabla_top_ads_historico(df_daily_agg, active_days_total_ad_df, log_
         log_func("   No se pudo ordenar Top Ads (faltan columnas spend/roas). Mostrando los primeros {top_n}.")
         df_top=df_top.head(top_n)
 
-    table_headers=['Campaña','AdSet','Anuncio','Días Act','Gasto','ROAS','Compras','CVR (%)','AOV','NCPA','CTR (%)','Frecuencia','Tiempo RV (s)']
+    table_headers=[
+        'Campaña','AdSet','Anuncio','URL FINAL','Puja','ThruPlays',
+        'Reproducciones 25%','Reproducciones 75%','Reproducciones 100%',
+        'Tiempo RV (s)','Días Act','Gasto','ROAS','Compras','CVR (%)','AOV','NCPA','CTR (%)','Frecuencia'
+    ]
+
     table_data=[]
-    for _,row_val in df_top.iterrows(): table_data.append({
+    for _,row_val in df_top.iterrows():
+        rv_cols_present = any(row_val.get(c,0)>0 for c in ['rv25','rv75','rv100']) or row_val.get('rtime',0)>0
+        table_data.append({
         'Campaña':row_val.get('Campaign','-'),
         'AdSet':row_val.get('AdSet','-'),
         'Anuncio':row_val.get('Anuncio','-'),
+        'URL FINAL':row_val.get('url_final','-'),
+        'Puja':f"{detected_currency}{fmt_float(row_val.get('puja'),2)}" if pd.notna(row_val.get('puja')) else '-',
+        'ThruPlays':fmt_int(row_val.get('thruplays')),
+        'Reproducciones 25%':fmt_int(row_val.get('rv25')) if rv_cols_present else '-',
+        'Reproducciones 75%':fmt_int(row_val.get('rv75')) if rv_cols_present else '-',
+        'Reproducciones 100%':fmt_int(row_val.get('rv100')) if rv_cols_present else '-',
+        'Tiempo RV (s)':f"{fmt_float(row_val.get('rtime'),1)}s" if rv_cols_present else '-',
         'Días Act':fmt_int(row_val.get('Días_Activo_Total', 0)),
         'Gasto':f"{detected_currency}{fmt_float(row_val.get('spend'),0)}",
         'ROAS':f"{fmt_float(row_val.get('roas'),2)}x",
@@ -945,12 +979,11 @@ def _generar_tabla_top_ads_historico(df_daily_agg, active_days_total_ad_df, log_
         'NCPA':f"{detected_currency}{fmt_float(safe_division(row_val.get('spend'), row_val.get('purchases')),2)}",
         'CTR (%)':fmt_pct(row_val.get('ctr'),2),
         'Frecuencia':fmt_float(row_val.get('frequency'),2),
-        'Tiempo RV (s)':f"{fmt_float(row_val.get('rtime'),1)}s",
         })
     if table_data: 
         df_display=pd.DataFrame(table_data)
         df_display = df_display[[h for h in table_headers if h in df_display.columns]] 
-        num_cols=[h for h in df_display.columns if h not in ['Campaña','AdSet','Anuncio']] 
+        num_cols=[h for h in df_display.columns if h not in ['Campaña','AdSet','Anuncio','URL FINAL']]
         _format_dataframe_to_markdown(df_display,f"** Top {top_n} Ads por Gasto > ROAS (Global Acumulado) **",log_func,currency_cols=detected_currency, stability_cols=[], numeric_cols_for_alignment=num_cols)
     else: log_func(f"   No hay datos para mostrar en Top {top_n} Ads.");
     log_func("\n  **Detalle Top Ads Histórico:** Muestra los anuncios con mejor rendimiento histórico, ordenados primero por mayor gasto total y luego por ROAS más alto. Todas las métricas son acumuladas globales.");
@@ -1045,8 +1078,8 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
         camp = key_row.get('Campaign', '-')
         adset = key_row.get('AdSet', '-')
         ad = key_row.get('Anuncio', '-')
-        pub_in = key_row.get('Públicos In', '-')
-        pub_ex = key_row.get('Públicos Ex', '-')
+        pub_in = _clean_audience_string(key_row.get('Públicos In', '-'))
+        pub_ex = _clean_audience_string(key_row.get('Públicos Ex', '-'))
         dias_act = int(key_row.get('Días_Activo_Total', 0))
         log_func(f"\nAnuncio: {ad}")
         log_func(f"Campaña: {camp}")
