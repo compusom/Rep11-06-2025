@@ -1,6 +1,8 @@
 import pandas as pd
 from datetime import datetime
 from data_processing.report_sections import _generar_tabla_bitacora_top_ads
+from data_processing.report_sections import _generar_tabla_bitacora_top_adsets
+from data_processing.report_sections import _generar_tabla_bitacora_top_campaigns
 from data_processing.report_sections import _clean_audience_string
 
 
@@ -56,3 +58,56 @@ def test_top_ads_audience_lines(capsys):
 
 def test_clean_audience_string():
     assert _clean_audience_string('123:Aud1 | 456:Aud2') == 'Aud1 | Aud2'
+
+
+def test_top_adsets_weekly_table(capsys):
+    df = pd.DataFrame({
+        'date': pd.to_datetime(['2024-06-01', '2024-06-02']),
+        'Campaign': ['Camp', 'Camp'],
+        'AdSet': ['Set', 'Set'],
+        'spend': [10, 15],
+        'impr': [100, 150],
+        'reach': [90, 130],
+        'purchases': [1, 1],
+        'visits': [10, 12],
+        'value': [20, 25],
+    })
+    periods = [
+        (datetime(2024, 6, 1), datetime(2024, 6, 2), 'Semana actual'),
+        (datetime(2024, 5, 25), datetime(2024, 5, 31), '1ª semana anterior'),
+    ]
+    active = pd.DataFrame({
+        'Campaign': ['Camp'],
+        'AdSet': ['Set'],
+        'Días_Activo_Total': [2]
+    })
+    logs = []
+    _generar_tabla_bitacora_top_adsets(df, periods, active, logs.append, '$', top_n=1)
+    output = "\n".join(logs)
+    assert 'Top 1 AdSets Bitácora - Semana actual' in output
+
+
+def test_top_campaigns_weekly_table(capsys):
+    df = pd.DataFrame({
+        'date': pd.to_datetime(['2024-06-01', '2024-06-02']),
+        'Campaign': ['Camp', 'Camp'],
+        'spend': [20, 30],
+        'impr': [200, 300],
+        'reach': [180, 250],
+        'purchases': [2, 3],
+        'visits': [20, 25],
+        'value': [40, 60],
+    })
+    periods = [
+        (datetime(2024, 6, 1), datetime(2024, 6, 2), 'Semana actual'),
+        (datetime(2024, 5, 25), datetime(2024, 5, 31), '1ª semana anterior'),
+    ]
+    active = pd.DataFrame({
+        'Campaign': ['Camp'],
+        'Días_Activo_Total': [2]
+    })
+    logs = []
+    _generar_tabla_bitacora_top_campaigns(df, periods, active, logs.append, '$', top_n=1)
+    output = "\n".join(logs)
+    assert 'Top 1 Campañas Bitácora - Semana actual' in output
+
