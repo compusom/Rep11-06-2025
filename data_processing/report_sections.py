@@ -26,6 +26,7 @@ from utils import aggregate_strings # <--- AÑADIR ESTA LÍNEA DE IMPORTACIÓN
 # ============================================================
 
 def _generar_tabla_vertical_global(df_daily_agg, detected_currency, log_func):
+    """Build the summary table with global metrics and last month comparison."""
     log_func("\n\n============================================================"); log_func("===== 1. Métricas Globales y Comparativa Mensual ====="); log_func("============================================================")
     if df_daily_agg is None or df_daily_agg.empty or 'date' not in df_daily_agg.columns or df_daily_agg['date'].dropna().empty:
         log_func("\nNo hay datos agregados diarios o fechas válidas."); return
@@ -98,6 +99,7 @@ def _generar_tabla_vertical_global(df_daily_agg, detected_currency, log_func):
 def _generar_tabla_vertical_entidad(entity_level, entity_name, dias_activos_total, df_daily_entity,
                                     min_entity_dt, max_entity_dt, adset_count,
                                     periods, detected_currency, log_func, period_type="Days"):
+    """Generate the vertical metrics table for a specific campaign/ad/adset."""
     header_label=entity_level.capitalize(); date_range_str=f"({min_entity_dt.strftime('%d/%m/%y')} - {max_entity_dt.strftime('%d/%m/%y')})" if min_entity_dt and max_entity_dt else ""; adset_count_str=f"(AdSets: {adset_count}) " if entity_level.lower()=='campaña' and adset_count is not None else ""
     log_func(f"\n\n--------------------------------------------------------------------------------"); log_func(f" {header_label}: {entity_name} {adset_count_str}{date_range_str} (Días Activo Total: {fmt_int(dias_activos_total)})"); log_func(f"--------------------------------------------------------------------------------")
     if df_daily_entity is None or df_daily_entity.empty: log_func("   No hay datos diarios."); return
@@ -388,6 +390,7 @@ def _generar_tabla_vertical_entidad(entity_level, entity_name, dias_activos_tota
     log_func("  ---")
 
 def _generar_tabla_embudo_rendimiento(df_daily_agg, periods_numeric, log_func, detected_currency):
+    """Create funnel analysis table comparing periods against projected averages."""
     log_func("\n\n============================================================");log_func("===== 4. Análisis de Embudo por Período (vs Promedio U30 Proyectado) =====");log_func("============================================================")
     funnel_steps_config=[ 
         ('Impresiones','impr'),
@@ -460,6 +463,7 @@ def _generar_tabla_embudo_rendimiento(df_daily_agg, periods_numeric, log_func, d
 
 
 def _generar_tabla_embudo_bitacora(df_daily_agg, bitacora_periods_list, log_func, detected_currency, period_type="Weeks"):
+    """Produce a detailed funnel table for a sequence of recent periods."""
     original_locale = locale.getlocale(locale.LC_TIME)
     try:
         locale_candidates = ['es_ES.UTF-8', 'es_ES', 'Spanish_Spain', 'Spanish']
@@ -599,6 +603,7 @@ def _generar_tabla_embudo_bitacora(df_daily_agg, bitacora_periods_list, log_func
         log_func(f"Adv: error restaurando locale: {loc_err}")
 
 def _generar_analisis_ads(df_combined, df_daily_agg, active_days_total_ad_df, log_func, detected_currency, last_day_status_lookup=None):
+    """Generate consolidated report sections focused on individual ads."""
     log_func("\n\n============================================================");log_func("===== 5. Análisis Consolidado de ADS =====");log_func("=====     (Filtro: Ads con Gasto > 0, Impresiones > 0 Y Días Activos > 0) =====");log_func("============================================================")
     essential_cols=['Campaign','AdSet','Anuncio','date','spend','impr']; 
     if df_daily_agg is None or df_daily_agg.empty or not all(c_col in df_daily_agg.columns for c_col in essential_cols) or df_daily_agg['date'].dropna().empty:
@@ -855,6 +860,7 @@ def _generar_analisis_ads(df_combined, df_daily_agg, active_days_total_ad_df, lo
     log_func("\n--- Fin Análisis Consolidado de Ads ---")
 
 def _generar_tabla_top_ads_historico(df_daily_agg, active_days_total_ad_df, log_func, detected_currency, top_n=10):
+    """List historically best performing ads by spend and ROAS."""
     log_func("\n\n============================================================");log_func(f"===== 6. Top {top_n} Ads Histórico (Orden: Gasto Desc > ROAS Desc) =====");log_func("============================================================")
     group_cols_ad=['Campaign','AdSet','Anuncio'] 
     essential_cols = group_cols_ad + ['spend','impr'] 
@@ -1030,6 +1036,7 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, log_fun
 
 def _generar_tabla_bitacora_entidad(entity_level, entity_name, df_daily_entity,
                                    bitacora_periods_list, detected_currency, log_func, period_type="Weeks"):
+    """Build a period-over-period table for a single entity within the report."""
     original_locale = locale.getlocale(locale.LC_TIME) 
     try:
         locale_candidates = ['es_ES.UTF-8', 'es_ES', 'Spanish_Spain', 'Spanish']
