@@ -25,7 +25,7 @@ from .report_sections import (
     _generar_tabla_embudo_rendimiento, _generar_tabla_embudo_bitacora,
     _generar_analisis_ads, _generar_tabla_top_ads_historico,
     _generar_tabla_bitacora_entidad, _generar_tabla_bitacora_top_ads,
-    _generar_tabla_bitacora_top_adsets
+    _generar_tabla_bitacora_top_adsets, _generar_tabla_bitacora_top_campaigns
 )
 
 # Importaciones de módulos en la raíz del proyecto
@@ -264,8 +264,9 @@ def procesar_reporte_bitacora(input_files, output_dir, output_filename, status_q
 
             log("--- Calculando Días Activos Totales (Bitácora) ---", importante=True)
             active_days_results = _calcular_dias_activos_totales(df_combined)
-            active_days_ad = active_days_results.get('Anuncio', pd.DataFrame())
+            active_days_campaign = active_days_results.get('Campaign', pd.DataFrame())
             active_days_adset = active_days_results.get('AdSet', pd.DataFrame())
+            active_days_ad = active_days_results.get('Anuncio', pd.DataFrame())
 
             min_date_overall = df_daily_agg_full['date'].min().date()
             max_date_overall = df_daily_agg_full['date'].max().date()
@@ -483,6 +484,7 @@ def procesar_reporte_bitacora(input_files, output_dir, output_filename, status_q
 
             _generar_tabla_bitacora_top_ads(df_daily_agg_full, bitacora_periods_list, active_days_ad, log, detected_currency)
             _generar_tabla_bitacora_top_adsets(df_daily_agg_full, bitacora_periods_list, active_days_adset, log, detected_currency)
+            _generar_tabla_bitacora_top_campaigns(df_daily_agg_full, bitacora_periods_list, active_days_campaign, log, detected_currency)
 
             log("\n\n============================================================");log(f"===== Resumen del Proceso (Bitácora {bitacora_comparison_type}) =====");log("============================================================")
             if log_summary_messages_orchestrator: [log(f"  - {re.sub(r'^\s*\[\d{2}:\d{2}:\d{2}\]\s*','',msg).strip().replace('---','-')}") for msg in log_summary_messages_orchestrator if re.sub(r'^\s*\[\d{2}:\d{2}:\d{2}\]\s*','',msg).strip()]

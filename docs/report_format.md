@@ -11,3 +11,5 @@ Example header used in the Top Ads section:
 ```
 Período;ROAS;Inversión;Compras;NCPA;CVR;AOV;Alcance;Impresiones;CTR
 ```
+
+This delimiter is consistent across the "Top Ads", "Top AdSets" and "Top Campañas" tables generated in the bitácora reports.
