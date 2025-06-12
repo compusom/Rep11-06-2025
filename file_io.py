@@ -19,6 +19,7 @@ except ImportError:
 # FUNCIONES DE LECTURA Y DETECCIÓN EN ARCHIVOS
 # ============================================================
 def find_date_column_name(file_path):
+    """Inspect the file header and guess the name of the date column."""
     try:
         df_peek=None; ext=os.path.splitext(file_path)[1].lower()
         if ext in ['.xlsx','.xls']:
@@ -80,6 +81,7 @@ def find_date_column_name(file_path):
     except Exception as e: print(f"Adv: Error general detectando col fecha ({os.path.basename(file_path)}): {e}"); return None
 
 def get_dates_from_file(file_path, date_column_name):
+    """Return a Series of parsed dates from the specified column."""
     try:
         dates_series = None
         ext = os.path.splitext(file_path)[1].lower()

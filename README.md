@@ -43,6 +43,14 @@ Developers are encouraged to follow standard Python packaging conventions when a
    ```
 4. Run the example scripts that will be added under `src/` as the project evolves.
 
+## Running Tests
+
+After installing dependencies you can run the unit tests with:
+
+```bash
+pytest
+```
+
 ## Contributing
 
 Pull requests that introduce useful scripts, improve documentation, or help define the project structure are welcome. Feel free to open issues to discuss ideas or report problems.
