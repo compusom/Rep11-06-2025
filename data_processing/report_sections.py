@@ -1076,13 +1076,6 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
             camp = key_row.get('Campaign', '-')
             adset = key_row.get('AdSet', '-')
             ad = key_row.get('Anuncio', '-')
-            url_final = key_row.get('url_final', '-')
-            puja_val = key_row.get('puja')
-            interacciones_val = key_row.get('interacciones')
-            comentarios_val = key_row.get('comentarios')
-            rtime_val = key_row.get('rtime')
-            pub_in = _clean_audience_string(key_row.get('Públicos In', '-'))
-            pub_ex = _clean_audience_string(key_row.get('Públicos Ex', '-'))
             dias_act = int(key_row.get('Días_Activo_Total', 0))
 
             sel = df_metrics[
@@ -1110,13 +1103,6 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
                 'Anuncio': ad,
                 'Campaña': camp,
                 'AdSet': adset,
-                'URL FINAL': url_final,
-                'Puja': f"{detected_currency}{fmt_float(puja_val,2)}" if pd.notna(puja_val) else '-',
-                'Interacciones': fmt_int(interacciones_val),
-                'Comentarios': fmt_int(comentarios_val),
-                'Tiempo RV (s)': f"{fmt_float(rtime_val,1)}s" if pd.notna(rtime_val) else '-',
-                'Públicos Incluidos': pub_in,
-                'Públicos Excluidos': pub_ex,
                 'Días Act': dias_act,
             }
             row.update(metrics)
@@ -1124,9 +1110,9 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
 
         if table_rows:
             df_display = pd.DataFrame(table_rows)
-            column_order = ['Anuncio','Campaña','AdSet','URL FINAL','Puja','Interacciones','Comentarios','Tiempo RV (s)','Públicos Incluidos','Públicos Excluidos','Días Act'] + metric_labels
+            column_order = ['Anuncio','Campaña','AdSet','Días Act'] + metric_labels
             df_display = df_display[[c for c in column_order if c in df_display.columns]]
-            num_cols = [c for c in df_display.columns if c not in ['Anuncio','Campaña','AdSet','URL FINAL','Públicos Incluidos','Públicos Excluidos']]
+            num_cols = [c for c in df_display.columns if c not in ['Anuncio','Campaña','AdSet']]
             _format_dataframe_to_markdown(df_display, f"Top {top_n} Ads Bitácora - {label}", log_func, numeric_cols_for_alignment=num_cols)
             any_table = True
 
@@ -1222,8 +1208,6 @@ def _generar_tabla_bitacora_top_adsets(df_daily_agg, bitacora_periods_list, acti
         for _, key_row in ranking_df.iterrows():
             camp = key_row.get('Campaign', '-')
             adset = key_row.get('AdSet', '-')
-            pub_in = _clean_audience_string(key_row.get('Públicos In', '-'))
-            pub_ex = _clean_audience_string(key_row.get('Públicos Ex', '-'))
             dias_act = int(key_row.get('Días_Activo_Total', 0))
 
             sel = df_metrics[
@@ -1249,8 +1233,6 @@ def _generar_tabla_bitacora_top_adsets(df_daily_agg, bitacora_periods_list, acti
             row = {
                 'Campaña': camp,
                 'AdSet': adset,
-                'Públicos Incluidos': pub_in,
-                'Públicos Excluidos': pub_ex,
                 'Días Act': dias_act,
             }
             row.update(metrics)
@@ -1258,9 +1240,9 @@ def _generar_tabla_bitacora_top_adsets(df_daily_agg, bitacora_periods_list, acti
 
         if table_rows:
             df_display = pd.DataFrame(table_rows)
-            column_order = ['Campaña','AdSet','Públicos Incluidos','Públicos Excluidos','Días Act'] + metric_labels
+            column_order = ['Campaña','AdSet','Días Act'] + metric_labels
             df_display = df_display[[c for c in column_order if c in df_display.columns]]
-            num_cols = [c for c in df_display.columns if c not in ['Campaña','AdSet','Públicos Incluidos','Públicos Excluidos']]
+            num_cols = [c for c in df_display.columns if c not in ['Campaña','AdSet']]
             _format_dataframe_to_markdown(df_display, f"Top {top_n} AdSets Bitácora - {label}", log_func, numeric_cols_for_alignment=num_cols)
             any_table = True
 
