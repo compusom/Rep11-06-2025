@@ -254,12 +254,16 @@ def procesar_reporte_bitacora(input_files, output_dir, output_filename, status_q
 
             log("\n--- Análisis de Bitácora ---")
             log("\n--- Iniciando Agregación Diaria (Bitácora) ---", importante=True)
-            df_daily_agg_full = _agregar_datos_diarios(df_combined, status_queue, selected_adsets) 
+            df_daily_agg_full = _agregar_datos_diarios(df_combined, status_queue, selected_adsets)
 
             if df_daily_agg_full is None or df_daily_agg_full.empty or 'date' not in df_daily_agg_full.columns or df_daily_agg_full['date'].dropna().empty:
                 log("!!! Falló agregación diaria o no hay fechas válidas. Abortando Bitácora. !!!", importante=True)
                 status_queue.put("---ERROR---"); return
             log("Agregación diaria OK.")
+
+            log("--- Calculando Días Activos Totales (Bitácora) ---", importante=True)
+            active_days_results = _calcular_dias_activos_totales(df_combined)
+            active_days_ad = active_days_results.get('Anuncio', pd.DataFrame())
 
             min_date_overall = df_daily_agg_full['date'].min().date()
             max_date_overall = df_daily_agg_full['date'].max().date()
