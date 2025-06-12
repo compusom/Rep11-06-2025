@@ -1101,21 +1101,21 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
         pub_in = _clean_audience_string(key_row.get('Públicos In', '-'))
         pub_ex = _clean_audience_string(key_row.get('Públicos Ex', '-'))
         dias_act = int(key_row.get('Días_Activo_Total', 0))
-        log_func(f"\nAnuncio: {ad}")
-        log_func(f"Campaña: {camp}")
-        log_func(f"AdSet: {adset}")
-        log_func(f"URL: {url_final}")
+        log_func(f"\nAnuncio: {ad};")
+        log_func(f"Campaña: {camp};")
+        log_func(f"AdSet: {adset};")
+        log_func(f"URL: {url_final};")
         log_func(
-            f"Puja: {detected_currency}{fmt_float(puja_val,2)}" if pd.notna(puja_val) else "Puja: -"
+            f"Puja: {detected_currency}{fmt_float(puja_val,2)};" if pd.notna(puja_val) else "Puja: -;"
         )
-        log_func(f"Interacciones: {fmt_int(interacciones_val)}")
-        log_func(f"Comentarios: {fmt_int(comentarios_val)}")
+        log_func(f"Interacciones: {fmt_int(interacciones_val)};")
+        log_func(f"Comentarios: {fmt_int(comentarios_val)};")
         log_func(
-            f"Tiempo promedio de reproducción del video: {fmt_float(rtime_val,1)}s"
+            f"Tiempo promedio de reproducción del video: {fmt_float(rtime_val,1)}s;"
         )
-        log_func(f"Públicos Incluidos: {pub_in}")
-        log_func(f"Públicos Excluidos: {pub_ex}")
-        log_func(f"Días Activos: {dias_act}")
+        log_func(f"Públicos Incluidos: {pub_in};")
+        log_func(f"Públicos Excluidos: {pub_ex};")
+        log_func(f"Días Activos: {dias_act};")
         log_func(header)
         for label in period_labels:
             df_metrics = period_metrics.get(label)
