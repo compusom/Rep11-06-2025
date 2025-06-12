@@ -1073,7 +1073,7 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
         return
 
 
-    metric_labels = ['ROAS', 'Inversión', 'Compras', 'NCPA', 'CVR', 'AOV', 'Alcance', 'Impresiones', 'CTR']
+    metric_labels = ['ROAS', 'Inversión', 'Compras', 'NCPA', 'CVR', 'AOV', 'Alcance', 'Impresiones', 'CTR', 'Frecuencia']
     any_table = False
 
     for label in period_labels:
@@ -1106,6 +1106,7 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, active_
                     'Alcance': fmt_int(r_row.get('reach')),
                     'Impresiones': fmt_int(r_row.get('impr')),
                     'CTR': fmt_pct(r_row.get('ctr'),2),
+                    'Frecuencia': fmt_float(r_row.get('frequency'),2),
                 }
 
             row = {
