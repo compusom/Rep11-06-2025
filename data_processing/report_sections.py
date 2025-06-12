@@ -793,12 +793,14 @@ def _generar_analisis_ads(df_combined, df_daily_agg, active_days_total_ad_df, lo
          log_func("Adv: No se pudo ordenar por gasto (columna ausente).")
          df_ads_sorted_spend = filtered_ads.copy()
 
-    t1_headers=['Campaña','AdSet','Nombre ADs','dias','Estado','Alcance','ROAS','Compras','CVR (%)','AOV','NCPA','CPM','CTR','CTR Saliente','Var U7 CTR','Var U7 ROAS','Var U7 Freq','Var U7 CPM','Var U7 Compras']
+    t1_headers=['Campaña','AdSet','Nombre ADs','Públicos Incluidos','Públicos Excluidos','dias','Estado','Alcance','ROAS','Compras','CVR (%)','AOV','NCPA','CPM','CTR','CTR Saliente','Var U7 CTR','Var U7 ROAS','Var U7 Freq','Var U7 CPM','Var U7 Compras']
     t1_data=[]
     for _,r_row in df_ads_sorted_spend.iterrows(): t1_data.append({
         'Campaña':r_row.get('Campaign','-'),
         'AdSet':r_row.get('AdSet','-'),
         'Nombre ADs':r_row.get('Anuncio','-'),
+        'Públicos Incluidos':str(r_row.get('Públicos In_global','-')),
+        'Públicos Excluidos':str(r_row.get('Públicos Ex_global','-')),
         'dias':fmt_int(r_row.get('Días_Activo_Total', 0)),
         'Estado':r_row.get('Estado_Ult_Dia','-'),
         'Alcance':fmt_int(r_row.get('reach_global')),
@@ -819,7 +821,7 @@ def _generar_analisis_ads(df_combined, df_daily_agg, active_days_total_ad_df, lo
     if t1_data: 
         df_t1=pd.DataFrame(t1_data)
         df_t1 = df_t1[[h for h in t1_headers if h in df_t1.columns]] 
-        num_cols_t1=[h for h in df_t1.columns if h not in ['Campaña','AdSet','Nombre ADs','Estado']] 
+        num_cols_t1=[h for h in df_t1.columns if h not in ['Campaña','AdSet','Nombre ADs','Estado','Públicos Incluidos','Públicos Excluidos']]
         _format_dataframe_to_markdown(df_t1,f"** Tabla Ads: Rendimiento y Variación (Orden: Gasto Desc) **",log_func,currency_cols=detected_currency, numeric_cols_for_alignment=num_cols_t1, max_col_width=45)
         log_func("\n  **Detalle Tabla Ads: Rendimiento y Variación:**");
         log_func("  * **Columnas principales (Alcance, ROAS, etc.):** Muestran el valor *Global Acumulado* para cada Ad durante todo el período de datos analizado.")
@@ -842,12 +844,14 @@ def _generar_analisis_ads(df_combined, df_daily_agg, active_days_total_ad_df, lo
     else: 
          log_func("Adv: No se pudo ordenar por ROAS/Reach/Días (columnas ausentes).")
 
-    t2_headers=['Campaña','AdSet','Nombre Ads','dias','Estado','CTR Glob (%)','Tiempo RV (s)','% RV 25','% RV 75','% RV 100','CPM Stab U7 (%)','Públicos Incluidos','Públicos Excluidos']
+    t2_headers=['Campaña','AdSet','Nombre Ads','Públicos Incluidos','Públicos Excluidos','dias','Estado','CTR Glob (%)','Tiempo RV (s)','% RV 25','% RV 75','% RV 100','CPM Stab U7 (%)']
     t2_data=[]
     for _,r_row in df_ads_sorted_roas.iterrows(): t2_data.append({
         'Campaña':r_row.get('Campaign','-'),
         'AdSet':r_row.get('AdSet','-'),
         'Nombre Ads':r_row.get('Anuncio','-'),
+        'Públicos Incluidos':str(r_row.get('Públicos In_global','-')),
+        'Públicos Excluidos':str(r_row.get('Públicos Ex_global','-')),
         'dias':fmt_int(r_row.get('Días_Activo_Total', 0)),
         'Estado':r_row.get('Estado_Ult_Dia','-'),
         'CTR Glob (%)':fmt_pct(r_row.get('ctr_global'),2),
@@ -855,9 +859,7 @@ def _generar_analisis_ads(df_combined, df_daily_agg, active_days_total_ad_df, lo
         '% RV 25':fmt_pct(r_row.get('rv25_pct_global'),1),
         '% RV 75':fmt_pct(r_row.get('rv75_pct_global'),1),
         '% RV 100':fmt_pct(r_row.get('rv100_pct_global'),1),
-        'CPM Stab U7 (%)':fmt_stability(r_row.get('cpm_stability_u7')),
-        'Públicos Incluidos':str(r_row.get('Públicos In_global','-')), 
-        'Públicos Excluidos':str(r_row.get('Públicos Ex_global','-')) 
+        'CPM Stab U7 (%)':fmt_stability(r_row.get('cpm_stability_u7'))
         })
     if t2_data: 
         df_t2=pd.DataFrame(t2_data)
