@@ -1034,7 +1034,6 @@ def _generar_tabla_bitacora_top_ads(df_daily_agg, bitacora_periods_list, log_fun
             reach = fmt_int(r_row.get('reach'))
             impr = fmt_int(r_row.get('impr'))
             ctr = fmt_pct(r_row.get('ctr'),2)
-            cpm = f"{detected_currency}{fmt_float(r_row.get('cpm'),2)}"
             log_func(
                 f"{label}\t{roas}\t{spend}\t{purchases}\t{cpa}\t{reach}\t{impr}\t{ctr}"
             )
